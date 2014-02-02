@@ -12,12 +12,9 @@ class Broker
     attr_accessor :bunny, :ch, :ex, :q
   end
 
-
-  def self.amqp_send(msg)
-    raise "not connected" unless self.bunny.connected?
-    self.ex.publish(msg, routing_key: "hello_world")
-  end
-
+  # TODO: probably will want to load config from YAML
+  # or similar
+  QUEUE_NAME = "hello_world"
 
   EM.next_tick do
     self.bunny = Bunny.new
@@ -25,25 +22,16 @@ class Broker
 
     self.ch = bunny.create_channel
     self.ex = ch.default_exchange
-    self.q  = ch.queue("hello_world", auto_delete: true)
-    puts "==> set up Broker.q"
+    self.q  = ch.queue(QUEUE_NAME, auto_delete: true)
+  end
+
+  def self.amqp_send(msg)
+    raise "Not connected!" unless self.bunny.connected?
+    self.ex.publish(msg, routing_key: QUEUE_NAME)
   end
 
 
-
-
-
   class SocketServer < Goliath::WebSocket
-
-    # TODO - this belongs on Invoca's side
-    EM.next_tick do
-      puts "==> subscribing Broker.q"
-      Broker.q.subscribe do |delivery_info, metadata, payload|
-        puts "GOT PAYLOAD: #{payload}"
-      end
-    end
-
-
     def on_open(env)
       env.logger.info("Opening")
     end
@@ -64,14 +52,6 @@ class Broker
     def on_close(env)
       env.logger.info("Closing")
     end
-
-    # def response(env)
-    #   if env['REQUEST_PATH'] == '/ws'
-    #     super(env)
-    #   else
-    #     raise "Unknown path"
-    #   end
-    # end
 
     private
 

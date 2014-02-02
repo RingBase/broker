@@ -1,37 +1,6 @@
-require 'json'
-require 'goliath'
-require 'goliath/websocket'
-require 'bunny'
-
-
 class Broker
-
-  Channels = {}
-
-  class << self
-    attr_accessor :bunny, :ch, :ex, :q
-  end
-
-  # TODO: probably will want to load config from YAML
-  # or similar
-  QUEUE_NAME = "hello_world"
-
-  EM.next_tick do
-    self.bunny = Bunny.new
-    self.bunny.start
-
-    self.ch = bunny.create_channel
-    self.ex = ch.default_exchange
-    self.q  = ch.queue(QUEUE_NAME, auto_delete: true)
-  end
-
-  def self.amqp_send(msg)
-    raise "Not connected!" unless self.bunny.connected?
-    self.ex.publish(msg, routing_key: QUEUE_NAME)
-  end
-
-
   class SocketServer < Goliath::WebSocket
+
     def on_open(env)
       env.logger.info("Opening")
     end
@@ -79,7 +48,7 @@ class Broker
     def handle_broadcast(agent_id, message)
       log_action("broadcast", agent_id)
       peers(agent_id).each { |id, chan| chan << format_message(message) }
-      Broker.amqp_send(message)
+      Broker.publish(message)
     end
 
     def handle_logout(agent_id)
@@ -101,4 +70,3 @@ class Broker
 
   end
 end
-

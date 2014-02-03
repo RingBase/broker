@@ -10,6 +10,9 @@ describe Broker do
 
     before(:each) do
       Bunny.stub(:new) { bunny }
+      Broker.stub(:config) do
+        { "queue_name" => "test_queue" }
+      end
     end
 
     around(:each) do |example|
@@ -23,7 +26,7 @@ describe Broker do
       bunny.should_receive(:start)
       bunny.should_receive(:create_channel).and_return { ch }
       ch.should_receive(:default_exchange).and_return { ex }
-      ch.should_receive(:queue).with("hello_world", { auto_delete: true }).and_return { q }
+      ch.should_receive(:queue).with("test_queue", { auto_delete: true }).and_return { q }
 
       Broker.connect_amqp!
     end

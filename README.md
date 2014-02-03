@@ -12,3 +12,6 @@ the server with a [Rake](http://rake.rubyforge.org/) task by calling
 ```
 rake broker:start
 ```
+
+### Status
+[![Build Status](https://travis-ci.org/RingBase/broker.png?branch=master)](https://travis-ci.org/RingBase/broker)

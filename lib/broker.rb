@@ -1,3 +1,4 @@
+require 'strong_parameters'
 require 'json'
 require 'yaml'
 require 'bunny'

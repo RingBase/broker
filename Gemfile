@@ -12,7 +12,7 @@ gem 'bunny', '~> 1.1.1'
 
 gem 'rake', '~> 10.1.1'
 
-gem 'strong_parameters'
+gem 'strong_parameters', :git => 'git://github.com/andrewberls/strong_parameters.git'
 
 group :test do
   gem 'guard-rspec', '~> 4.2.5'

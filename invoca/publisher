@@ -26,4 +26,6 @@ EventMachine.run do
   })
 
   ex.publish(json, routing_key: "invoca_to_broker")
+
+  EM.stop
 end

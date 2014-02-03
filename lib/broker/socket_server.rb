@@ -1,5 +1,9 @@
-class Broker
+module Broker
+
+  # TODO: broker will pass info about incoming AMQP messages here
   class SocketServer < Goliath::WebSocket
+
+    Channels = {}
 
     def on_open(env)
       env.logger.info("Opening")
@@ -25,7 +29,7 @@ class Broker
     private
 
     def peers(agent_id)
-      Broker::Channels.reject { |id, _| id == agent_id }
+      Channels.reject { |id, _| id == agent_id }
     end
 
     def format_message(message)
@@ -39,10 +43,10 @@ class Broker
     # TODO: When we push a message to the channel, push it to the client ??
     def handle_login(agent_id)
       log_action("login", agent_id)
-      Broker::Channels[agent_id] = EM::Channel.new
-      Broker::Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
+      Channels[agent_id] = EM::Channel.new
+      Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
 
-      Broker::Channels[agent_id] << format_message("logged in")
+      Channels[agent_id] << format_message("logged in")
     end
 
     def handle_broadcast(agent_id, message)
@@ -53,7 +57,7 @@ class Broker
 
     def handle_logout(agent_id)
       log_action("logout", agent_id)
-      Broker::Channels.delete(agent_id)
+      Channels.delete(agent_id)
     end
 
     def log_action(action, agent_id)

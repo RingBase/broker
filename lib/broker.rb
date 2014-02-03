@@ -39,7 +39,11 @@ class Broker
 
     # TODO: handle connection/auth errors
     def connect_amqp!
-      self.bunny = Bunny.new
+      username = config['username']
+      password = config['password']
+      host     = config['host']
+      port     = config['port']
+      self.bunny = Bunny.new("amqp://#{username}:#{password}@#{host}:#{port}")
       self.bunny.start
 
       self.ch = bunny.create_channel

@@ -9,9 +9,14 @@ describe Broker do
     let(:q) { double("queue") }
 
     before(:each) do
-      Bunny.stub(:new) { bunny }
       Broker.stub(:config) do
-        { "queue_name" => "test_queue" }
+        {
+          "queue_name" => "test_queue",
+          "username" => "guest",
+          "password" => "guest",
+          "host" => "localhost",
+          "port" => 5672
+        }
       end
     end
 
@@ -23,6 +28,7 @@ describe Broker do
     end
 
     it 'sets up a connection to the AMQP broker' do
+      Bunny.should_receive(:new).with("amqp://guest:guest@localhost:5672").and_return(bunny)
       bunny.should_receive(:start)
       bunny.should_receive(:create_channel).and_return { ch }
       ch.should_receive(:default_exchange).and_return { ex }

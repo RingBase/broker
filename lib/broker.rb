@@ -1,7 +1,8 @@
 require 'json'
+require 'yaml'
+require 'bunny'
 require 'goliath'
 require 'goliath/websocket'
-require 'bunny'
 require_relative 'broker/socket_server'
 
 # Prevent Goliath from auto-running
@@ -18,9 +19,13 @@ class Broker
   class << self
     attr_accessor :bunny, :ch, :ex, :q
 
+    def config
+      @config ||= YAML.load_file("config.yml")
+    end
+
     def publish(msg)
       raise "Not connected!" unless self.bunny.connected?
-      self.ex.publish(msg, routing_key: QUEUE_NAME)
+      self.ex.publish(msg, routing_key: config["queue_name"])
     end
 
     # TODO: Goliath nomally starts the reactor itself.
@@ -39,7 +44,7 @@ class Broker
 
       self.ch = bunny.create_channel
       self.ex = ch.default_exchange
-      self.q  = ch.queue(QUEUE_NAME, auto_delete: true)
+      self.q  = ch.queue(config["queue_name"], auto_delete: true)
     end
 
     def run_app!

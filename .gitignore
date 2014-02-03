@@ -43,3 +43,6 @@ tmp/*
 dump.rdb
 
 coverage/
+
+# No credentials in version control!
+config.yml

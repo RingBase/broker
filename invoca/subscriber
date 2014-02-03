@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require 'eventmachine'
+require 'bunny'
+require 'yaml'
+
+# Simulate an Invoca AMQP subscriber endpoint
+# i.e., listen for events over AMQP and write out to Cassandra
+# as necessary
+
+EventMachine.run do
+  config = YAML.load_file("config.yml")
+  username = config['username']
+  password = config['password']
+  host     = config['host']
+  port     = config['port']
+  bunny = Bunny.new("amqp://#{username}:#{password}@#{host}:#{port}")
+  bunny.start
+
+  ch = bunny.create_channel
+
+  q  = ch.queue("broker_to_invoca", auto_delete: true)
+  q.subscribe do |delivery_info, metadata, payload|
+    puts "Invoca got payload: #{payload}"
+    # TODO: write to Cassandra, etc
+  end
+end

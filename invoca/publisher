@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+require 'eventmachine'
+require 'bunny'
+require 'yaml'
+require 'json'
+
+# Simulate an Invoca AMQP publisher endpoint
+# i.e., publish events to our broker over AMQP
+
+EventMachine.run do
+  config = YAML.load_file("config.yml")
+  username = config['username']
+  password = config['password']
+  host     = config['host']
+  port     = config['port']
+  bunny = Bunny.new("amqp://#{username}:#{password}@#{host}:#{port}")
+  bunny.start
+
+  ch = bunny.create_channel
+  ex = ch.default_exchange
+
+  json = JSON.dump({
+    type: "call_start",
+    call: { id: "677ee3e5-24d6-43aa-9802-bca05093aed4" }
+  })
+
+  ex.publish(json, routing_key: "invoca_to_broker")
+end

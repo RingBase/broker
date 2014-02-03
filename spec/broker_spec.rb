@@ -11,7 +11,6 @@ describe Broker do
     before(:each) do
       Broker.stub(:config) do
         {
-          "queue_name" => "test_queue",
           "username" => "guest",
           "password" => "guest",
           "host" => "localhost",
@@ -32,7 +31,8 @@ describe Broker do
       bunny.should_receive(:start)
       bunny.should_receive(:create_channel).and_return { ch }
       ch.should_receive(:default_exchange).and_return { ex }
-      ch.should_receive(:queue).with("test_queue", { auto_delete: true }).and_return { q }
+      ch.should_receive(:queue).with("invoca_to_broker", { auto_delete: true }).and_return { q }
+      q.should_receive(:subscribe)
 
       Broker.connect_amqp!
     end

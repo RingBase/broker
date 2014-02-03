@@ -1,5 +1,3 @@
-queue_name: my_queue
-
 username: guest
 password: guest
 host: localhost

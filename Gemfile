@@ -9,3 +9,8 @@ gem 'em-websocket'
 gem 'bunny'
 
 gem 'rake'
+
+group :test do
+  gem 'guard-rspec', '~> 4.2.5'
+  gem 'rspec'
+end

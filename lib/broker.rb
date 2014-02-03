@@ -34,14 +34,12 @@ class Broker
 
     # TODO: handle connection/auth errors
     def connect_amqp!
-      EM.next_tick do
-        self.bunny = Bunny.new
-        self.bunny.start
+      self.bunny = Bunny.new
+      self.bunny.start
 
-        self.ch = bunny.create_channel
-        self.ex = ch.default_exchange
-        self.q  = ch.queue(QUEUE_NAME, auto_delete: true)
-      end
+      self.ch = bunny.create_channel
+      self.ex = ch.default_exchange
+      self.q  = ch.queue(QUEUE_NAME, auto_delete: true)
     end
 
     def run_app!

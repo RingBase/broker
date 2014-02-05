@@ -1,7 +1,7 @@
 ## Broker
 
 This is the RingBase WebSocket/AMQP broker which sits between browser clients and Invoca's API.
-It receives incoming messages over AMQP and relays thenm to clients over WebSockets, as well
+It receives incoming messages over AMQP and relays them to clients over WebSockets, as well
 as handling data flow in the opposite direction.
 
 ### Usage

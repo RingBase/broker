@@ -1,7 +1,36 @@
 module Broker
 
+  class InvalidTypeError < StandardError; end
+
   # TODO: broker will pass info about incoming AMQP messages here
   class SocketServer < Goliath::WebSocket
+
+    class << self
+      # TODO: need to finalize event dictionary / args
+
+      def process(json)
+        type = json[:type]
+        call = json[:call]
+        send("handle_#{type}", call)
+      end
+
+      def handle_call_start(call)
+      end
+
+      def handle_call_stop(call)
+      end
+
+      def handle_call_updated(call)
+      end
+
+      def method_missing(meth, *args, &block)
+        if meth =~ /^handle_/
+          raise InvalidTypeError, "Unknown action: #{meth}"
+        else
+          super(meth, *args, &block)
+        end
+      end
+    end
 
     Channels = {}
 
@@ -63,14 +92,6 @@ module Broker
     def log_action(action, agent_id)
       env.logger.info("#{agent_id} => #{action}")
     end
-
-    def method_missing(meth, *args, &block)
-      if meth =~ /^handle_/
-        raise ArgumentError, "Unknown action: #{meth}"
-      else
-        super(meth, *args, &block)
-      end
-    end
-
   end
+
 end

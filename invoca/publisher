@@ -25,7 +25,9 @@ EventMachine.run do
     call: { id: "677ee3e5-24d6-43aa-9802-bca05093aed4" }
   })
 
+  puts "Publishing call..."
   ex.publish(json, routing_key: "invoca_to_broker")
 
+  puts "Done."
   EM.stop
 end

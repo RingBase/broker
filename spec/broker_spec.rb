@@ -2,7 +2,7 @@ require_relative 'spec_helper'
 
 describe Broker do
 
-  context '::run!' do
+  context '::connect_amqp!' do
     let(:bunny) { double("bunny") }
     let(:ch) { double("channel") }
     let(:ex) { double("exchange") }

@@ -17,7 +17,6 @@ module Broker
   end
 
   def publish(msg)
-    raise "Not connected!" unless @bunny.connected?
     @ex.publish(msg, routing_key: "broker_to_invoca")
   end
 
@@ -42,7 +41,8 @@ module Broker
     @q  = @ch.queue("invoca_to_broker", auto_delete: true)
 
     @q.subscribe do |delivery_info, metadata, payload|
-      puts "BROKER GOT: #{payload}"
+      json = JSON.parse(payload, symbolize_names: true) # TODO: ?
+      SocketServer.process(json)
     end
   end
 

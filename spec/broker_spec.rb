@@ -29,9 +29,9 @@ describe Broker do
     it 'sets up a connection to the AMQP broker' do
       Bunny.should_receive(:new).with("amqp://guest:guest@localhost:5672").and_return(bunny)
       bunny.should_receive(:start)
-      bunny.should_receive(:create_channel).and_return { ch }
-      ch.should_receive(:default_exchange).and_return { ex }
-      ch.should_receive(:queue).with("invoca_to_broker", { auto_delete: true }).and_return { q }
+      bunny.should_receive(:create_channel).and_return(ch)
+      ch.should_receive(:default_exchange).and_return(ex)
+      ch.should_receive(:queue).with("invoca_to_broker", { auto_delete: true }).and_return(q)
       q.should_receive(:subscribe)
 
       Broker.connect_amqp!

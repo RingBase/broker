@@ -3,6 +3,8 @@ require_relative 'spec_helper'
 describe 'Broker::SocketServer' do
 
   context '#process' do
+    let(:server) { Broker::SocketServer.new }
+
     let(:call) do
       { call: { id: "abcd-1234" } }
     end
@@ -11,19 +13,23 @@ describe 'Broker::SocketServer' do
       { call: call }
     end
 
+    let(:queue) { double("queue") }
+
+    before { Broker.stub(:queue).and_return(queue) }
+
     [:call_start, :call_stop, :call_updated].each do |type|
       it "dynamically dispatches #{type} handlers" do
-        Broker::SocketServer.should_receive(:"handle_#{type}").with(call)
+        queue.should_receive(:subscribe)
+        server.should_receive(:"handle_#{type}").with(call)
         json[:type] = type
-        Broker::SocketServer.process(json)
+        server.process(json)
       end
     end
 
     it 'catches invalid handlers' do
+      queue.should_receive(:subscribe)
       json[:type] = "unknown"
-      expect do
-        Broker::SocketServer.process(json)
-      end.to raise_error(Broker::InvalidTypeError)
+      expect { server.process(json) }.to raise_error(Broker::InvalidTypeError)
     end
   end
 

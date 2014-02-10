@@ -11,10 +11,12 @@ describe Broker do
     before(:each) do
       Broker.stub(:config) do
         {
-          "username" => "guest",
-          "password" => "guest",
-          "host" => "localhost",
-          "port" => 5672
+          "rabbitmq" => {
+            "username" => "guest",
+            "password" => "guest",
+            "host" => "localhost",
+            "port" => 5672
+          }
         }
       end
     end
@@ -32,7 +34,6 @@ describe Broker do
       bunny.should_receive(:create_channel).and_return(ch)
       ch.should_receive(:default_exchange).and_return(ex)
       ch.should_receive(:queue).with("invoca_to_broker", { auto_delete: true }).and_return(q)
-      q.should_receive(:subscribe)
 
       Broker.connect_amqp!
     end

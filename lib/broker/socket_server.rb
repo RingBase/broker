@@ -1,56 +1,33 @@
 module Broker
 
-  # TODO: need to put some thought in modeling handling events between Invoca-Broker
-  # vs handling events between clients-Broker
-  #
-  # Can we give names to each segment and separate files?
-
   class InvalidTypeError < StandardError; end
 
-  # TODO: broker will pass info about incoming AMQP messages here
+  # TODO: we'll probably want to split API/client handling
+  # methods into modules or similar
   class SocketServer < Goliath::WebSocket
-
-    class << self
-      # TODO: need to finalize event dictionary / args
-
-      def process(json)
-        type = json[:type]
-        call = json[:call]
-        send("handle_#{type}", call)
-      end
-
-      def handle_call_start(call)
-        app.publish("call start")
-      end
-
-      def handle_call_stop(call)
-      end
-
-      def handle_call_updated(call)
-      end
-
-      def app
-        @app ||= Broker.server.api
-      end
-
-      def method_missing(meth, *args, &block)
-        if meth =~ /^handle_/
-          raise InvalidTypeError, "Unknown action: #{meth}"
-        else
-          super(meth, *args, &block)
-        end
-      end
-    end
-
-
     Channels = {}
 
-    # TODO: this method (or similar) provides the interface between
-    # the broker-invoca and broker-client sides
-    def publish(msg)
-      Broker.logger.info("PUBLISHING: #{msg}")
-      Channels.each { |id, chan| chan << format_message(msg) }
+    def initialize
+      Broker.queue.subscribe do |delivery_info, metadata, payload|
+        json = JSON.parse(payload, symbolize_names: true) # TODO: ?
+        process(json)
+      end
+      super
     end
+
+    def process(json)
+      type = json[:type]
+      call = json[:call]
+      send("handle_#{type}", call)
+    end
+
+    def handle_call_start(call)
+    end
+
+    def handle_call_stop(call)
+    end
+
+
 
     def on_open(env)
       env.logger.info("Opening")
@@ -71,6 +48,14 @@ module Broker
     # How to actually remove channel state?
     def on_close(env)
       env.logger.info("Closing")
+    end
+
+    def method_missing(meth, *args, &block)
+      if meth =~ /^handle_/
+        raise InvalidTypeError, "Unknown action: #{meth}"
+      else
+        super(meth, *args, &block)
+      end
     end
 
     private
@@ -110,7 +95,6 @@ module Broker
     def log_action(action, agent_id)
       env.logger.info("#{agent_id} => #{action}")
     end
-
 
   end
 end

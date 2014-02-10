@@ -1,5 +1,10 @@
 module Broker
 
+  # TODO: need to put some thought in modeling handling events between Invoca-Broker
+  # vs handling events between clients-Broker
+  #
+  # Can we give names to each segment and separate files?
+
   class InvalidTypeError < StandardError; end
 
   # TODO: broker will pass info about incoming AMQP messages here
@@ -15,12 +20,17 @@ module Broker
       end
 
       def handle_call_start(call)
+        app.publish("call start")
       end
 
       def handle_call_stop(call)
       end
 
       def handle_call_updated(call)
+      end
+
+      def app
+        @app ||= Broker.server.api
       end
 
       def method_missing(meth, *args, &block)
@@ -32,7 +42,15 @@ module Broker
       end
     end
 
+
     Channels = {}
+
+    # TODO: this method (or similar) provides the interface between
+    # the broker-invoca and broker-client sides
+    def publish(msg)
+      Broker.logger.info("PUBLISHING: #{msg}")
+      Channels.each { |id, chan| chan << format_message(msg) }
+    end
 
     def on_open(env)
       env.logger.info("Opening")
@@ -92,6 +110,7 @@ module Broker
     def log_action(action, agent_id)
       env.logger.info("#{agent_id} => #{action}")
     end
-  end
 
+
+  end
 end

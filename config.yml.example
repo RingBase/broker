@@ -1,4 +1,9 @@
-username: guest
-password: guest
-host: localhost
-port: 5672
+rabbitmq:
+  username: guest
+  password: guest
+  host: localhost
+  port: 5672
+
+server:
+  address: '0.0.0.0'
+  port: 9000

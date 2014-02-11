@@ -80,7 +80,7 @@ GEM
     log4r (1.1.10)
     lumberjack (1.0.4)
     method_source (0.8.2)
-    minitest (5.2.3)
+    minitest (5.2.2)
     multi_json (1.8.4)
     pry (0.9.12.6)
       coderay (~> 1.0)

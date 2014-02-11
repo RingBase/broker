@@ -22,17 +22,27 @@ module Broker
     end
 
     def handle_call_start(call)
+      Channels.each { |id, chan| chan << JSON.dump(type: 'call_start', message: call) }
     end
 
     def handle_call_stop(call)
+      Channels.each { |id, chan| chan << JSON.dump(type: 'call_stop', message: call) }
     end
 
 
+
+
+
+    # Browser client methods
+    # Most of this code can probably be thrown out / needs to be redone
 
     def on_open(env)
       env.logger.info("Opening")
     end
 
+    # TODO: parse message type and handle appropriately
+    # e.g. handle incoming call transfer requests, fire to invoca, and handle browser
+    # ack response, etc
     def on_message(env, json)
       msg      = JSON.parse(json)
       agent_id = msg['agent_id'] or raise "Missing required param: agent_id"

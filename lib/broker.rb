@@ -15,7 +15,7 @@ module Broker
   attr_accessor :channel, :exchange, :queue
 
   def config
-    @config ||= YAML.load_file("config.yml")
+    @config ||= YAML.load_file("config.yml.example")
   end
 
   def publish(msg)

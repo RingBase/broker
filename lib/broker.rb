@@ -18,10 +18,6 @@ module Broker
     @config ||= YAML.load_file("config.yml")
   end
 
-  def publish(msg)
-    exchange.publish(msg, routing_key: "broker_to_invoca")
-  end
-
   def run!
     EM.run do
       connect_amqp!

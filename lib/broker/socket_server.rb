@@ -1,68 +1,92 @@
 module Broker
-
   class InvalidTypeError < StandardError; end
 
-  # TODO: we'll probably want to split API/client handling
-  # methods into modules or similar
   class SocketServer < Goliath::WebSocket
     Channels = {}
 
+
+    # Invoca -> Broker
+    # ------------------------------------------
+
     def initialize
       Broker.queue.subscribe do |delivery_info, metadata, payload|
-        json = JSON.parse(payload, symbolize_names: true) # TODO: ?
+        json = JSON.parse(payload)
         process(json)
       end
       super
     end
 
     def process(json)
-      type = json[:type]
-      call = json[:call]
-      send("handle_#{type}", call)
+      type = json['type']
+      call = json['call']
+      send("handle_api_#{type}", call)
     end
 
-    def handle_call_start(call)
-      Channels.each { |id, chan| chan << JSON.dump(type: 'call_start', message: call) }
+    def handle_api_call_start(call)
+      client_broadcast('call_start', call)
     end
 
-    def handle_call_stop(call)
-      Channels.each { |id, chan| chan << JSON.dump(type: 'call_stop', message: call) }
+    def handle_api_call_stop(call)
+      client_broadcast('call_stop', call)
     end
 
 
 
+    # Broker -> Invoca
+    # ------------------------------------------
+
+    def publish(msg)
+      Broker.exchange.publish(msg, routing_key: 'broker_to_invoca')
+    end
 
 
-    # Browser client methods
-    # Most of this code can probably be thrown out / needs to be redone
+
+    # Browser -> Broker
+    # ------------------------------------------
 
     def on_open(env)
-      env.logger.info("Opening")
+      env.logger.info('Opening')
     end
 
-    # TODO: parse message type and handle appropriately
-    # e.g. handle incoming call transfer requests, fire to invoca, and handle browser
-    # ack response, etc
     def on_message(env, json)
-      msg      = JSON.parse(json)
-      agent_id = msg['agent_id'] or raise "Missing required param: agent_id"
-      action   = msg['action'] or raise "Missing required param: action_id"
+      data     = JSON.parse(json)
+      type     = data.delete('type') or raise 'Missing required param: type'
+      data['agent_id'] or raise 'Missing required param: agent_id'
 
-      action == 'broadcast' ? handle_broadcast(agent_id, msg['data']) :
-                              send("handle_#{action}", agent_id)
-      rescue Exception => e
-        puts "ERROR => #{e.message}"
+      # TODO: params here depend on the event?
+      send("handle_client_#{type}", data)
     end
 
-    # TODO: this relies on logout message being sent properly before close?
-    # How to actually remove channel state?
+    # TODO: How to properly remove channel state?
     def on_close(env)
-      env.logger.info("Closing")
+      env.logger.info('Closing')
     end
+
+    def handle_client_call_accept(call)
+    end
+
+    # TODO: understand subscribe()
+    def handle_client_login(data)
+      agent_id = data['agent_id']
+      Channels[agent_id] = EM::Channel.new
+      Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
+      Channels[agent_id] << format_event('join', { agent_id: agent_id })
+    end
+
+
+
+    # Broker -> Browser
+    # ------------------------------------------
+
+    def client_broadcast(event, data)
+      Channels.each { |id, chan| chan << format_event(event, data) }
+    end
+
+
 
     def method_missing(meth, *args, &block)
       if meth =~ /^handle_/
-        raise InvalidTypeError, "Unknown action: #{meth}"
+        raise InvalidTypeError, "Unknown event type: #{meth}"
       else
         super(meth, *args, &block)
       end
@@ -70,40 +94,8 @@ module Broker
 
     private
 
-    def peers(agent_id)
-      Channels.reject { |id, _| id == agent_id }
-    end
-
-    def format_message(message)
-      JSON.dump(type: 'message', message: message)
-    end
-
-    def format_error(message)
-      JSON.dump(type: 'error', message: message)
-    end
-
-    # TODO: When we push a message to the channel, push it to the client ??
-    def handle_login(agent_id)
-      log_action("login", agent_id)
-      Channels[agent_id] = EM::Channel.new
-      Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
-
-      Channels[agent_id] << format_message("logged in")
-    end
-
-    def handle_broadcast(agent_id, message)
-      log_action("broadcast", agent_id)
-      peers(agent_id).each { |id, chan| chan << format_message(message) }
-      Broker.publish(message)
-    end
-
-    def handle_logout(agent_id)
-      log_action("logout", agent_id)
-      Channels.delete(agent_id)
-    end
-
-    def log_action(action, agent_id)
-      env.logger.info("#{agent_id} => #{action}")
+    def format_event(event, data)
+      JSON.dump(type: event, data: data)
     end
 
   end

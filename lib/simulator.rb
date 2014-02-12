@@ -32,19 +32,19 @@ require 'json'
 
     def call_start
       json = JSON.dump({
-        type: "call_start",
-        call: { id: SecureRandom.uuid }
+        'type' => 'call_start',
+        'call' => { id: SecureRandom.uuid }
       })
-      ex.publish(json, routing_key: "invoca_to_broker")
+      ex.publish(json, routing_key: 'invoca_to_broker')
       json
     end
 
     def call_stop
       json = JSON.dump({
-        type: "call_stop",
-        call: { id: SecureRandom.uuid }
+        'type' => 'call_stop',
+        'call' => { id: SecureRandom.uuid }
       })
-      ex.publish(json, routing_key: "invoca_to_broker")
+      ex.publish(json, routing_key: 'invoca_to_broker')
       json
     end
 

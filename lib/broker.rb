@@ -6,6 +6,9 @@ require 'json'
 require 'yaml'
 require 'amqp'
 require 'bunny'
+require 'eventmachine'
+require 'thrift_client'
+require 'thrift_client/event_machine'
 require 'cassandra'
 require 'goliath'
 require 'goliath/websocket'
@@ -37,7 +40,7 @@ module Broker
       runner.logger = logger
       runner.app    = Goliath::Rack::Builder.build(server.class, server)
       runner.run
-      #connect_cassandra!
+      connect_cassandra!
     end
   end
 
@@ -67,8 +70,16 @@ module Broker
     keyspace = config['cassandra']['keyspace']
     username = config['cassandra']['username']
     password = config['cassandra']['password']
-    self.cassandra = Cassandra.new(keyspace, "#{host}:#{port}")
-    self.cassandra.login!(username, password)
+    fiber = Fiber.new do
+      self.cassandra = Cassandra.new(keyspace,
+                                   "#{host}:#{port}",
+                                   :transport_wrapper => nil,
+                                   :transport => Thrift::EventMachineTransport)
+      self.cassandra.login!(username, password)
+      puts self.cassandra.inspect
+    end
+
+    puts fiber.resume
   end
 
 end

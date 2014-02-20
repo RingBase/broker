@@ -47,3 +47,11 @@ $ rake simulator:listen
 
 ### Status
 [![Build Status](https://travis-ci.org/RingBase/broker.png?branch=master)](https://travis-ci.org/RingBase/broker)
+
+### Cassandra
+Setting up Cassandra locally with cqlsh
+```
+CREATE KEYSPACE ringbase WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor':3};
+USE ringbase;
+
+```

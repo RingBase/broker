@@ -150,3 +150,4 @@ DEPENDENCIES
   rake (~> 10.1.1)
   rspec (~> 2.14.1)
   strong_parameters!
+  thrift_client (~> 0.8.4)

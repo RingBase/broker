@@ -7,10 +7,11 @@ as handling data flow in the opposite direction.
 ### Usage
 
 Make sure you have all the dependencies installed by running `bundle install`. Then, you can start
-the server with a [Rake](http://rake.rubyforge.org/) task by calling
+the server with a [Rake](http://rake.rubyforge.org/) task by calling each of the following in a separate terminal session:
 
 ```
-rake broker:start
+$ rabbitmq-server
+$ rake broker:start
 ```
 
 ### Status

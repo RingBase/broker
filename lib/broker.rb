@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift('lib')
+
 require 'strong_parameters'
 require 'logger'
 require 'json'
@@ -5,7 +7,7 @@ require 'yaml'
 require 'bunny'
 require 'goliath'
 require 'goliath/websocket'
-require_relative 'broker/socket_server'
+require 'broker/socket_server'
 
 # Prevent Goliath from auto-running
 Goliath.run_app_on_exit = false

@@ -5,6 +5,8 @@ require 'logger'
 require 'json'
 require 'yaml'
 require 'amqp'
+require 'bunny'
+require 'cassandra'
 require 'goliath'
 require 'goliath/websocket'
 require 'broker/socket_server'
@@ -16,7 +18,7 @@ Goliath.run_app_on_exit = false
 module Broker
   extend self
 
-  attr_accessor :server, :logger,
+  attr_accessor :server, :logger, :cassandra
                 :channel, :exchange, :queue
 
   def config
@@ -35,6 +37,7 @@ module Broker
       runner.logger = logger
       runner.app    = Goliath::Rack::Builder.build(server.class, server)
       runner.run
+      #connect_cassandra!
     end
   end
 
@@ -55,6 +58,17 @@ module Broker
 
   def log(msg)
     logger.info(msg)
+  end
+
+  # Connect the Cassandra client
+  def connect_cassandra!
+    host     = config['cassandra']['host']
+    port     = config['cassandra']['port']
+    keyspace = config['cassandra']['keyspace']
+    username = config['cassandra']['username']
+    password = config['cassandra']['password']
+    self.cassandra = Cassandra.new(keyspace, "#{host}:#{port}")
+    self.cassandra.login!(username, password)
   end
 
 end

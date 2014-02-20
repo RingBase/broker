@@ -9,10 +9,16 @@ module Broker
     # ------------------------------------------
 
     def initialize
+      EM.next_tick do
+        trap("INT")  { stop }
+        trap("TERM") { stop }
+      end
+
       Broker.queue.subscribe do |delivery_info, metadata, payload|
         json = JSON.parse(payload)
         process(json)
       end
+
       super
     end
 
@@ -96,6 +102,13 @@ module Broker
 
     def format_event(event, data)
       JSON.dump(type: event, data: data)
+    end
+
+    def stop
+      EM.next_tick do
+        EM.stop
+        Broker.log("Stopped")
+      end
     end
 
   end

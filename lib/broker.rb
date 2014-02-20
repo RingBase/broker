@@ -1,4 +1,5 @@
 require 'strong_parameters'
+require 'logger'
 require 'json'
 require 'yaml'
 require 'bunny'
@@ -12,17 +13,22 @@ Goliath.run_app_on_exit = false
 module Broker
   extend self
 
-  attr_accessor :channel, :exchange, :queue
+  attr_accessor :server, :logger,
+                :channel, :exchange, :queue
 
   def config
     @config ||= YAML.load_file("config.yml")
   end
 
   def run!
-    EM.run do
-      connect_amqp!
-      run_app!
-    end
+    connect_amqp!
+
+    self.server   = Broker::SocketServer.new
+    self.logger   = Logger.new(STDOUT)
+    runner        = Goliath::Runner.new(ARGV, server)
+    runner.logger = logger
+    runner.app    = Goliath::Rack::Builder.build(server.class, server)
+    runner.run
   end
 
   # Connect Bunny to the AMQP broker and set up the inbound listener queue
@@ -39,9 +45,8 @@ module Broker
     self.queue    = channel.queue("invoca_to_broker", auto_delete: true)
   end
 
-  def run_app!
-    ARGV[1] = '-sv'
-    Goliath::Application.run!
+  def log(msg)
+    logger.info(msg)
   end
 
 end

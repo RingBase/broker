@@ -9,9 +9,8 @@ module Broker
     # ------------------------------------------
 
     def initialize
-      Broker.log("starting server")
       Broker.queue.subscribe do |payload|
-        Broker.log(payload.inspect)
+        Broker.log("GOT PAYLOAD: #{payload}")
         json = JSON.parse(payload)
         process(json)
       end

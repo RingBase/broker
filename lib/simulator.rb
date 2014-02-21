@@ -1,4 +1,5 @@
 require 'eventmachine'
+require 'amqp'
 require 'securerandom'
 require 'json'
 
@@ -13,7 +14,7 @@ module Invoca
       'type' => 'call_start',
       'call' => { id: id }
     })
-    ex.publish(json, routing_key: 'invoca_to_broker')
+    ex.publish(json, :routing_key => 'invoca_to_broker')
     json
   end
 
@@ -57,22 +58,21 @@ module Invoca
     @config ||= YAML.load_file("config.yml")
   end
 
-  def bunny
-    @bunny ||= begin
+  def connection
+    @connection ||= begin
       username = config['rabbitmq']['username']
       password = config['rabbitmq']['password']
       host     = config['rabbitmq']['host']
       port     = config['rabbitmq']['port']
-      bunny = Bunny.new("amqp://#{username}:#{password}@#{host}:#{port}")
-      bunny.start
-      bunny
+      AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
     end
   end
 
   def ex
     @ex ||= begin
-      ch = bunny.create_channel
-      ch.default_exchange
+      ch = AMQP::Channel.new(connection)
+      ex = ch.default_exchange
+      ex
     end
   end
 

@@ -14,8 +14,7 @@ module Invoca
       'type' => 'call_start',
       'call' => { id: id }
     })
-    ex.publish(json, :routing_key => 'invoca_to_broker')
-    json
+    send_event(json)
   end
 
   def send_call_stop(id = SecureRandom.uuid)
@@ -23,8 +22,7 @@ module Invoca
       'type' => 'call_stop',
       'call' => { id: id }
     })
-    ex.publish(json, routing_key: 'invoca_to_broker')
-    json
+    send_event(json)
   end
 
   def send_call_accepted(id = SecureRandom.uuid)
@@ -32,8 +30,7 @@ module Invoca
       'type' => 'call_accepted',
       'call' => { id: id }
     })
-    ex.publish(json, routing_key: 'invoca_to_broker')
-    json
+    send_event(json)
   end
 
   def send_call_transfer_complete(id = SecureRandom.uuid)
@@ -41,16 +38,8 @@ module Invoca
       'type' => 'call_transfer_complete',
       'call' => { id: id }
     })
-    ex.publish(json, routing_key: 'invoca_to_broker')
-    json
+    send_event(json)
   end
-
-  # TODO:
-  # call_accept (receive)
-  # call_accepted (send)
-  #
-  # call_transfer_request (receive)
-  # call_transfer_complete (send)
 
   private
 
@@ -58,23 +47,32 @@ module Invoca
     @config ||= YAML.load_file("config.yml")
   end
 
-  def connection
-    @connection ||= begin
-      username = config['rabbitmq']['username']
-      password = config['rabbitmq']['password']
-      host     = config['rabbitmq']['host']
-      port     = config['rabbitmq']['port']
-      AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
-    end
+  def create_connection
+    username = config['rabbitmq']['username']
+    password = config['rabbitmq']['password']
+    host     = config['rabbitmq']['host']
+    port     = config['rabbitmq']['port']
+    AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
   end
 
-  def ex
-    @ex ||= begin
-      ch = AMQP::Channel.new(connection)
-      ex = ch.default_exchange
-      ex
-    end
+  def create_exchange
+    connection = create_connection
+    ch = AMQP::Channel.new(connection)
+    ex = ch.default_exchange
+    [connection, ex]
   end
 
+  # Create a new connection and exchange for each event
+  # This is obviously not good, but it's only a temporary simulator
+  def send_event(json)
+    EM.run do
+      connection,ex = create_exchange
+      ex.publish(json, :routing_key => 'invoca_to_broker')
+      EM.add_timer(1) do
+        p json
+        connection.close { EM.stop }
+      end
+    end
+  end
 
 end

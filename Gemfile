@@ -10,6 +10,8 @@ gem 'em-websocket'
 
 gem 'bunny', '~> 1.1.1'
 
+gem 'amqp', '~> 1.3.0'
+
 gem 'rake', '~> 10.1.1'
 
 gem 'strong_parameters', :git => 'git://github.com/andrewberls/strong_parameters.git'

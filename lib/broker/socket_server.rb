@@ -9,12 +9,9 @@ module Broker
     # ------------------------------------------
 
     def initialize
-      EM.next_tick do
-        trap("INT")  { stop }
-        trap("TERM") { stop }
-      end
-
-      Broker.queue.subscribe do |delivery_info, metadata, payload|
+      Broker.log("starting server")
+      Broker.queue.subscribe do |payload|
+        Broker.log(payload.inspect)
         json = JSON.parse(payload)
         process(json)
       end

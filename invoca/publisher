@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'eventmachine'
-require 'bunny'
+require 'amqp'
 require 'yaml'
 require 'json'
 
@@ -9,16 +9,17 @@ require 'json'
 # i.e., publish events to our broker over AMQP
 
 EventMachine.run do
-  config = YAML.load_file("config.yml")
+  config = YAML.load_file("../config.yml")
   username = config['rabbitmq']['username']
   password = config['rabbitmq']['password']
   host     = config['rabbitmq']['host']
   port     = config['rabbitmq']['port']
-  bunny = Bunny.new("amqp://#{username}:#{password}@#{host}:#{port}")
-  bunny.start
+  puts "connecting to amqp://#{username}:#{password}@#{host}:#{port}"
 
-  ch = bunny.create_channel
-  ex = ch.default_exchange
+  connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
+
+  channel = AMQP::Channel.new(connection)
+  ex = channel.default_exchange
 
   json = JSON.dump({
     type: "call_start",
@@ -26,8 +27,7 @@ EventMachine.run do
   })
 
   puts "Publishing call..."
-  ex.publish(json, routing_key: "invoca_to_broker")
+  ex.publish("test", :routing_key => "invoca_to_broker")
 
   puts "Done."
-  EM.stop
 end

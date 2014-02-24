@@ -2,6 +2,7 @@ require 'eventmachine'
 require 'amqp'
 require 'securerandom'
 require 'json'
+require 'faker'
 
 # A simulator for the Invoca API, which both sends
 # messages to the broker and receives them, all over AMQP
@@ -12,13 +13,7 @@ module Invoca
   def send_call_start(id = SecureRandom.uuid)
     json = JSON.dump({
       'type' => 'call_start',
-      'call' => {
-        id: id,
-        name: "Nivedh Mohinder",
-        email: "nivedh@gmail.com",
-        city: "India City",
-        number: "111-222-3333"
-      }
+      'call' => generate_call(id)
     })
     send_event(json)
   end
@@ -26,7 +21,7 @@ module Invoca
   def send_call_stop(id = SecureRandom.uuid)
     json = JSON.dump({
       'type' => 'call_stop',
-      'call' => { id: id }
+      'call' => generate_call(id)
     })
     send_event(json)
   end
@@ -34,7 +29,7 @@ module Invoca
   def send_call_accepted(id = SecureRandom.uuid)
     json = JSON.dump({
       'type' => 'call_accepted',
-      'call' => { id: id }
+      'call' => generate_call(id)
     })
     send_event(json)
   end
@@ -42,7 +37,7 @@ module Invoca
   def send_call_transfer_complete(id = SecureRandom.uuid)
     json = JSON.dump({
       'type' => 'call_transfer_complete',
-      'call' => { id: id }
+      'call' => generate_call(id)
     })
     send_event(json)
   end
@@ -79,6 +74,16 @@ module Invoca
         connection.close { EM.stop }
       end
     end
+  end
+
+  def generate_call(id)
+    {
+      id: id,
+      name: Faker::Name.name,
+      email: Faker::Internet.email,
+      city: Faker::Address.city,
+      number: Faker::PhoneNumber.cell_phone
+    }
   end
 
 end

@@ -16,6 +16,10 @@ gem 'rake', '~> 10.1.1'
 
 gem 'strong_parameters', :git => 'git://github.com/andrewberls/strong_parameters.git'
 
+group :development, :test do
+  gem 'faker', '~> 1.2.0'
+end
+
 group :test do
   gem 'guard-rspec', '~> 4.2.5'
   gem 'rspec', '~> 2.14.1'

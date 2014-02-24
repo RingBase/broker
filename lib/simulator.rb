@@ -12,7 +12,13 @@ module Invoca
   def send_call_start(id = SecureRandom.uuid)
     json = JSON.dump({
       'type' => 'call_start',
-      'call' => { id: id }
+      'call' => {
+        id: id,
+        name: "Nivedh Mohinder",
+        email: "nivedh@gmail.com",
+        city: "India City",
+        number: "111-222-3333"
+      }
     })
     send_event(json)
   end

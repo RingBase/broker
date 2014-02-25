@@ -4,13 +4,6 @@ module Broker
   class SocketServer < Goliath::WebSocket
     Channels = {}
 
-    # Browser -> Broker
-    # ------------------------------------------
-
-    def initialize
-      super
-    end
-
     def on_open(env)
       env.logger.info('Opening')
     end
@@ -39,9 +32,6 @@ module Broker
       Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
       Channels[agent_id] << format_event('join', { agent_id: agent_id })
     end
-
-    # Broker -> Browser
-    # ------------------------------------------
 
     def client_broadcast(event, data)
       Channels.each { |id, chan| chan << format_event(event, data) }

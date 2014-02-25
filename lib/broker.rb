@@ -28,6 +28,7 @@ module Broker
     
     EventMachine.run do
       connect_amqp!
+      Broker::InOutBoundInvoca.start
       self.server   = Broker::SocketServer.new
       runner        = Goliath::Runner.new(ARGV, server)
       runner.logger = logger

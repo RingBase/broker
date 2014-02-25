@@ -7,6 +7,10 @@ module Broker
     # Browser -> Broker
     # ------------------------------------------
 
+    def initialize
+      super
+    end
+
     def on_open(env)
       env.logger.info('Opening')
     end

@@ -1,36 +1,31 @@
 module Broker
   
-  module InOutBoundInvoca
+  module InvocaAPI
+    extend self
     
-    # Invoca -> Broker
-    # ------------------------------------------
-
-    def self.start
+    def start
       Broker.queue.subscribe do |payload|
         Broker.log("GOT PAYLOAD: #{payload}")
         json = JSON.parse(payload)
-        Broker::InOutBoundInvoca.process(json)
+        process(json)
       end
     end
 
-    def self.process(json)
+    def process(json)
       type = json['type']
       call = json['call']
       send("handle_api_#{type}", call)
     end
 
-    def self.handle_api_call_start(call)
+    def handle_api_call_start(call)
       Broker.server.client_broadcast('call_start', call)
     end
 
-    def self.handle_api_call_stop(call)
+    def handle_api_call_stop(call)
       Broker.server.client_broadcast('call_stop', call)
     end
 
-    # Broker -> Invoca
-    # ------------------------------------------
-
-    def self.publish(msg)
+    def publish(msg)
       Broker.exchange.publish(msg, routing_key: 'broker_to_invoca')
     end
 

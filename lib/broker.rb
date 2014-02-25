@@ -8,6 +8,7 @@ require 'amqp'
 require 'goliath'
 require 'goliath/websocket'
 require 'broker/socket_server'
+require 'broker/invoca_api'
 
 # Prevent Goliath from auto-running
 Goliath.run_app_on_exit = false

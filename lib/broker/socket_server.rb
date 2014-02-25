@@ -4,45 +4,6 @@ module Broker
   class SocketServer < Goliath::WebSocket
     Channels = {}
 
-
-    # Invoca -> Broker
-    # ------------------------------------------
-
-    def initialize
-      Broker.queue.subscribe do |payload|
-        Broker.log("GOT PAYLOAD: #{payload}")
-        json = JSON.parse(payload)
-        process(json)
-      end
-
-      super
-    end
-
-    def process(json)
-      type = json['type']
-      call = json['call']
-      send("handle_api_#{type}", call)
-    end
-
-    def handle_api_call_start(call)
-      client_broadcast('call_start', call)
-    end
-
-    def handle_api_call_stop(call)
-      client_broadcast('call_stop', call)
-    end
-
-
-
-    # Broker -> Invoca
-    # ------------------------------------------
-
-    def publish(msg)
-      Broker.exchange.publish(msg, routing_key: 'broker_to_invoca')
-    end
-
-
-
     # Browser -> Broker
     # ------------------------------------------
 
@@ -75,16 +36,12 @@ module Broker
       Channels[agent_id] << format_event('join', { agent_id: agent_id })
     end
 
-
-
     # Broker -> Browser
     # ------------------------------------------
 
     def client_broadcast(event, data)
       Channels.each { |id, chan| chan << format_event(event, data) }
     end
-
-
 
     def method_missing(meth, *args, &block)
       if meth =~ /^handle_/

@@ -1,9 +1,8 @@
 module Broker
-  
   module InvocaAPI
     extend self
-    
-    def start
+
+    def listen
       Broker.queue.subscribe do |payload|
         Broker.log("GOT PAYLOAD: #{payload}")
         json = JSON.parse(payload)

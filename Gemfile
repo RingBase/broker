@@ -8,8 +8,6 @@ gem 'goliath', '~> 1.0.3'
 
 gem 'em-websocket'
 
-gem 'bunny', '~> 1.1.1'
-
 gem 'amqp', '~> 1.3.0'
 
 gem 'rake', '~> 10.1.1'

@@ -25,10 +25,11 @@ module Broker
 
   def run!
     self.logger   = Logger.new(STDOUT)
-    
+
     EventMachine.run do
-      connect_amqp!
-      Broker::InvocaAPI.start
+      Broker.connect_amqp!
+      Broker::InvocaAPI.listen
+
       self.server   = Broker::SocketServer.new
       runner        = Goliath::Runner.new(ARGV, server)
       runner.logger = logger

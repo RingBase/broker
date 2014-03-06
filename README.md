@@ -14,13 +14,14 @@ $ rabbitmq-server
 $ rake broker
 ```
 
-### Simulator
-You can start the Invoca endpoint simulator by running
+### Simulator - Publishing
+You can start the interactive Invoca publisher simulator (say that ten times fast) by running
 
 ```
-$ rake simulator
+$ rake simulator:start
 ```
 
+This starts an IRB session where you can enter commands to mimic sending events from Invoca.
 The following methods are supported, which send events to the Broker over AMQP:
 
 `Invoca.send_call_start` - Send a call_start event
@@ -31,7 +32,18 @@ The following methods are supported, which send events to the Broker over AMQP:
 
 `Invoca.send_call_transfer_complete` - Send a call_transfer_complete event
 
-All methods take an optional call id as a parameter, which will be filled with a random UUID if none is provided.
+All methods take an optional hash of call attributes, which will be filled with random data if none is provided.
+
+
+### Simulator - Subscribing
+You can start the simulator listener (which receives events and sends back ACKs) by running:
+
+```
+$ rake simulator:listen
+```
+
+
+
 
 ### Status
 [![Build Status](https://travis-ci.org/RingBase/broker.png?branch=master)](https://travis-ci.org/RingBase/broker)

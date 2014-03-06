@@ -20,12 +20,20 @@ module Broker
       Broker.server.client_broadcast('call_start', call)
     end
 
+    def handle_api_call_accepted(call)
+      Broker.server.client_broadcast('call_accepted', call)
+    end
+
+    def handle_api_call_transfer_completed(call)
+      Broker.server.client_broadcast('call_accepted', call)
+    end
+
     def handle_api_call_stop(call)
       Broker.server.client_broadcast('call_stop', call)
     end
 
-    def publish(msg)
-      Broker.exchange.publish(msg, routing_key: 'broker_to_invoca')
+    def publish(json)
+      Broker.exchange.publish(json, routing_key: 'broker_to_invoca')
     end
 
   end

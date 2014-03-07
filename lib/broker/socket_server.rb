@@ -12,8 +12,6 @@ module Broker
       json = JSON.parse(raw_json)
       type = json.delete('type') or raise 'Missing required param: type'
       json['agent_id'] or raise 'Missing required param: agent_id'
-
-      # TODO: params here depend on the event?
       send("handle_client_#{type}", json)
     end
 
@@ -23,7 +21,7 @@ module Broker
     end
 
     def handle_client_call_accept(call)
-      Broker.log "SocketServer handling client call accept"
+      Broker::InvocaAPI.publish(type: 'call_accept', call: call)
     end
 
     # TODO: understand subscribe()

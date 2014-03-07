@@ -35,7 +35,7 @@ module Broker
     end
 
     def publish(json)
-      Broker.exchange.publish(json, routing_key: 'broker_to_invoca')
+      Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')
     end
 
   end

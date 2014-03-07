@@ -1,10 +1,12 @@
+# Handle incoming events from the Invoca API
+
 module Broker
   module InvocaAPI
     extend self
 
     def listen
       Broker.queue.subscribe do |payload|
-        Broker.log("GOT PAYLOAD: #{payload}")
+        Broker.log("InvocaApi AMQP listener got payload: #{payload}")
         json = JSON.parse(payload)
         process(json)
       end

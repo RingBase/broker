@@ -8,13 +8,13 @@ module Broker
       env.logger.info('Opening')
     end
 
-    def on_message(env, json)
-      data     = JSON.parse(json)
-      type     = data.delete('type') or raise 'Missing required param: type'
-      data['agent_id'] or raise 'Missing required param: agent_id'
+    def on_message(env, raw_json)
+      json = JSON.parse(raw_json)
+      type = json.delete('type') or raise 'Missing required param: type'
+      json['agent_id'] or raise 'Missing required param: agent_id'
 
       # TODO: params here depend on the event?
-      send("handle_client_#{type}", data)
+      send("handle_client_#{type}", json)
     end
 
     # TODO: How to properly remove channel state?
@@ -23,6 +23,7 @@ module Broker
     end
 
     def handle_client_call_accept(call)
+      Broker.log "SocketServer handling client call accept"
     end
 
     # TODO: understand subscribe()

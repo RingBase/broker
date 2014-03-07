@@ -54,7 +54,7 @@ module Invoca
   # Subscriber
   # ---------------------------------------
 
-  # Listen for events and immediately respond with appropriate acks
+  # Listen for messages from the Broker and immediately respond with appropriate acks
   def listen
     username = config['rabbitmq']['username']
     password = config['rabbitmq']['password']
@@ -130,9 +130,6 @@ module Invoca
 
   # TODO: wat
   def generate_call(call_opts={})
-    if call_opts.nil?
-      p 'HOW DO DEFAULT ARGS'
-    end
     id     = call_opts.delete('id')     || SecureRandom.uuid
     name   = call_opts.delete('name')   || Faker::Name.name
     email  = call_opts.delete('email')  || Faker::Internet.email

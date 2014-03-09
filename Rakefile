@@ -11,12 +11,13 @@ namespace :simulator do
     require 'irb'
     require 'irb/completion'
     ARGV.clear
+    Thread.new { EM.run }
     IRB.start
   end
 
   task :listen do
-    EM.run do
-      Invoca.listen
-    end
+    th = Thread.new { EM.run }
+    Invoca.listen
+    th.join
   end
 end

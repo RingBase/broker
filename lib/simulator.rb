@@ -117,18 +117,18 @@ module Invoca
 
   # Create a new connection and exchange for each event
   # This is obviously not good, but it's only a temporary simulator
+  #
+  # TODO: this still creates a separate connection for each message
+  # Probably a low priority.
   def send_event(json)
-    EM.run do
+    EM.schedule do
       connection,ex = create_exchange
       ex.publish(json, :routing_key => 'invoca_to_broker')
-      EM.add_timer(1) do
-        p json
-        connection.close { EM.stop }
-      end
+      EM.add_timer(0.5) { connection.close }
     end
   end
 
-  # TODO: wat
+
   def generate_call(call_opts={})
     id     = call_opts.delete('id')     || SecureRandom.uuid
     name   = call_opts.delete('name')   || Faker::Name.name

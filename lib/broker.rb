@@ -5,11 +5,10 @@ require 'logger'
 require 'json'
 require 'yaml'
 require 'amqp'
-require 'bunny'
 require 'eventmachine'
 require 'thrift_client'
 require 'thrift_client/event_machine'
-require 'cassandra'
+require 'cql'
 require 'goliath'
 require 'goliath/websocket'
 require 'broker/socket_server'
@@ -21,7 +20,7 @@ Goliath.run_app_on_exit = false
 module Broker
   extend self
 
-  attr_accessor :server, :logger, :cassandra
+  attr_accessor :server, :logger, :cassandra,
                 :channel, :exchange, :queue
 
   def config
@@ -30,6 +29,11 @@ module Broker
 
   def run!
     self.logger   = Logger.new(STDOUT)
+
+    # get_cassandra_client!
+    cassandra
+    # puts @client.get(:Users, '62c36092-82a1-3a00-93d1-46196ee77204')
+    puts "I'm moving on"
 
     EventMachine.run do
       Broker.connect_amqp!
@@ -40,7 +44,9 @@ module Broker
       runner.logger = logger
       runner.app    = Goliath::Rack::Builder.build(server.class, server)
       runner.run
-      connect_cassandra!
+      # client = get_cassandra_client!
+      # puts 'connected'
+      # puts client
     end
   end
 
@@ -64,22 +70,58 @@ module Broker
   end
 
   # Connect the Cassandra client
-  def connect_cassandra!
+  def cassandra
+    client = Cql::Client.connect(hosts: 127.0.0.1)
+    client.use('ringbase')
+    # rows = client.execute('SELECT keyspace_name, columnfamily_name FROM schema_columnfamilies')
+    # rows.each do |row|
+    #   puts "The keyspace #{row['keyspace_name']} has a table called #{row['columnfamily_name']}"
+    # end
+  end
+
+  def get_cassandra_client!
     host     = config['cassandra']['host']
     port     = config['cassandra']['port']
     keyspace = config['cassandra']['keyspace']
     username = config['cassandra']['username']
     password = config['cassandra']['password']
-    fiber = Fiber.new do
-      self.cassandra = Cassandra.new(keyspace,
-                                   "#{host}:#{port}",
-                                   :transport_wrapper => nil,
-                                   :transport => Thrift::EventMachineTransport)
-      self.cassandra.login!(username, password)
-      puts self.cassandra.inspect
+    EM.run do
+      Fiber.new do
+        @client = Cassandra.new(keyspace,
+                                 "#{host}:#{port}",
+                                 :transport_wrapper => nil,
+                                 :transport => Thrift::EventMachineTransport)
+        puts @client.inspect
+        puts @client.keyspaces
+        # puts @client.add_column_family('testing')
+        @client.get(:calls, '62c36092-82a1-3a00-93d1-46196ee77204')
+        # puts @client.get(:calls, '62c36092-82a1-3a00-93d1-46196ee77204')
+        # puts call
+        # @client.clear_keyspace!
+        EM.stop
+      end.resume
     end
 
-    puts fiber.resume
+#     EM.run do 
+#           Fiber.new do 
+#               @cass = Cassandra.new('Keyspace1', '10.202.27.25:9160, 
+# 10.244.154.48:9160, 10.244.154.240:9160', :transport => 
+# Thrift::EventMachineTransport, :transport_wrapper => nil ) 
+#               user = @cass.get(:Standard2, params[:id]) 
+#               puts user 
+#           end.resume 
+#       end 
+
+    # fiber = Fiber.new do
+    #   self.cassandra = Cassandra.new(keyspace,
+    #                                "#{host}:#{port}",
+    #                                :transport_wrapper => nil,
+    #                                :transport => Thrift::EventMachineTransport)
+    #   self.cassandra.login!(username, password)
+    #   puts self.cassandra.inspect
+    # end
+
+    # puts fiber.resume
   end
 
 end

@@ -41,8 +41,13 @@ module Broker
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
 
-    def handle_client_call_accept(call)
-      Broker::InvocaAPI.publish(type: 'call_accept', call: call)
+    def handle_client_call_accept(data)
+      Broker::InvocaAPI.publish(data.merge(type: 'call_accept'))
+    end
+
+    def handle_client_call_transfer_request(data)
+      # TODO: Query from Postgres the agent_id information
+      Broker::InvocaAPI.publish(data.merge(type: 'call_transfer_request'))
     end
 
     # TODO: understand subscribe()

@@ -18,7 +18,7 @@ module Invoca
 
   # Publisher
   # ---------------------------------------
-  def send_call_start(call_opts={})
+  def send_call_start(call_opts=nil)
     json = JSON.dump({
       'type' => 'call_start',
       'call' => generate_call(call_opts)
@@ -26,7 +26,7 @@ module Invoca
     send_event(json)
   end
 
-  def send_call_stop(call_opts={})
+  def send_call_stop(call_opts=nil)
     json = JSON.dump({
       'type' => 'call_stop',
       'call' => generate_call(call_opts)
@@ -34,7 +34,7 @@ module Invoca
     send_event(json)
   end
 
-  def send_call_accepted(call_opts={})
+  def send_call_accepted(call_opts=nil)
     json = JSON.dump({
       'type' => 'call_accepted',
       'call' => generate_call(call_opts)
@@ -42,9 +42,9 @@ module Invoca
     send_event(json)
   end
 
-  def send_call_transfer_complete(call_opts={})
+  def send_call_transfer_completed(call_opts=nil)
     json = JSON.dump({
-      'type' => 'call_transfer_complete',
+      'type' => 'call_transfer_completed',
       'call' => generate_call(call_opts)
     })
     send_event(json)
@@ -89,9 +89,9 @@ module Invoca
   # Receive a call transfer request and immediately send
   # call_transfer_complete ack
   def sim_receive_call_transfer_request(call)
-    puts "Sim receive call transfer request: parrot send_call_transfer_complete"
+    puts "Sim receive call transfer request: parrot send_call_transfer_completed"
     sleep(0.3)
-    send_call_transfer_complete(call)
+    send_call_transfer_completed(call)
   end
 
   private
@@ -129,20 +129,40 @@ module Invoca
   end
 
 
-  def generate_call(call_opts={})
-    id     = call_opts.delete('id')     || SecureRandom.uuid
-    name   = call_opts.delete('name')   || Faker::Name.name
-    email  = call_opts.delete('email')  || Faker::Internet.email
-    city   = call_opts.delete('city')   || Faker::Address.city
-    number = call_opts.delete('number') || Faker::PhoneNumber.cell_phone
+  def generate_call(call_opts=nil)
+    if call_opts.nil?
+      {
+        'id' => SecureRandom.uuid,
+        'name' => Faker::Name.name,
+        'email' => Faker::Internet.email,
+        'city' => Faker::Address.city,
+        'number' => Faker::PhoneNumber.cell_phone
+      }
+    elsif
+      payload = {}
 
-    {
-      'id' => id,
-      'name' => name,
-      'email' => email,
-      'city' => city,
-      'number' => number
-    }
+      if id = call_opts.delete("id")
+        payload['id'] = id
+      end
+
+      if name = call_opts.delete("name")
+        payload['name'] = name
+      end
+
+      if email = call_opts.delete("email")
+        payload['email'] = email
+      end
+
+      if city = call_opts.delete("city")
+        payload['city'] = city
+      end
+
+      if number = call_opts.delete("number")
+        payload['number'] = number
+      end
+
+      payload
+    end
   end
 
 end

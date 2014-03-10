@@ -10,6 +10,10 @@ gem 'em-websocket'
 
 gem 'amqp', '~> 1.3.0'
 
+gem "cassandra", '~> 0.23.0'
+
+gem "thrift_client", "~> 0.8.4"
+
 gem 'rake', '~> 10.1.1'
 
 gem 'strong_parameters', :git => 'git://github.com/andrewberls/strong_parameters.git'

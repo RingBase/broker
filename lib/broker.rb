@@ -5,6 +5,10 @@ require 'logger'
 require 'json'
 require 'yaml'
 require 'amqp'
+require 'eventmachine'
+require 'thrift_client'
+require 'thrift_client/event_machine'
+require 'cassandra/1.2'
 require 'goliath'
 require 'goliath/websocket'
 require 'broker/socket_server'
@@ -16,7 +20,7 @@ Goliath.run_app_on_exit = false
 module Broker
   extend self
 
-  attr_accessor :server, :logger,
+  attr_accessor :server, :logger, :cassandra,
                 :channel, :exchange, :queue
 
   def config
@@ -25,6 +29,8 @@ module Broker
 
   def run!
     self.logger   = Logger.new(STDOUT)
+
+    get_cassandra_client!
 
     EventMachine.run do
       Broker.connect_amqp!
@@ -55,6 +61,24 @@ module Broker
 
   def log(msg)
     logger.info(msg)
+  end
+
+  def get_cassandra_client!
+    host     = config['cassandra']['host']
+    port     = config['cassandra']['port']
+    keyspace = config['cassandra']['keyspace']
+    username = config['cassandra']['username']
+    password = config['cassandra']['password']
+    EM.run do
+      Fiber.new do
+        @client = Cassandra.new(keyspace,
+                                 "#{host}:#{port}",
+                                 :transport_wrapper => nil,
+                                 :transport => Thrift::EventMachineTransport)
+        puts @client.get(:calls, "\x00\x00\x00\x01")
+        EM.stop
+      end.resume
+    end
   end
 
 end

@@ -20,6 +20,27 @@ module Broker
       env.logger.info('Closing')
     end
 
+    def handle_client_list_calls(json)
+      agent_id = json['agent_id']
+      Broker.log("Listing calls for agent: #{agent_id}")
+      calls = [
+        {
+          id: '1',
+          number: '111-111-1111',
+          name: 'Name One',
+          city: 'City One',
+        },
+
+        {
+          id: '2',
+          number: '222-222-2222',
+          name: 'Name Two',
+          city: 'City Two',
+        }
+      ]
+      Channels[agent_id] << format_event('call_list', { calls: calls })
+    end
+
     def handle_client_call_accept(call)
       Broker::InvocaAPI.publish(type: 'call_accept', call: call)
     end

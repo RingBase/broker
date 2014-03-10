@@ -141,24 +141,10 @@ module Invoca
     elsif
       payload = {}
 
-      if id = call_opts.delete("id")
-        payload['id'] = id
-      end
-
-      if name = call_opts.delete("name")
-        payload['name'] = name
-      end
-
-      if email = call_opts.delete("email")
-        payload['email'] = email
-      end
-
-      if city = call_opts.delete("city")
-        payload['city'] = city
-      end
-
-      if number = call_opts.delete("number")
-        payload['number'] = number
+      %w(id name email city number).each do |attr|
+        if field_val = call_opts.delete(attr)
+          payload[attr] = field_val
+        end
       end
 
       payload

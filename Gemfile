@@ -10,7 +10,7 @@ gem 'em-websocket'
 
 gem 'amqp', '~> 1.3.0'
 
-gem "cql-rb", '~> 1.2.1'
+gem "cassandra", '~> 0.23.0'
 
 gem "thrift_client", "~> 0.8.4"
 

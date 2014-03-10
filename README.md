@@ -49,20 +49,30 @@ $ rake simulator:listen
 [![Build Status](https://travis-ci.org/RingBase/broker.png?branch=master)](https://travis-ci.org/RingBase/broker)
 
 ### Cassandra
-Setting up Cassandra locally with cqlsh
+Setting up Cassandra locally with cqlsh 3.0 (plus test tables)
 ```
 CREATE KEYSPACE ringbase WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor':1};
+
 USE ringbase;
-CREATE TABLE calls (
-id uuid PRIMARY KEY,
+
+CREATE TABLE Calls (
+id int PRIMARY KEY,
 caller_name text,
 caller_id text,
-organization_id uuid,
+organization_id int,
 notes text,
 sale double
-);
-INSERT INTO calls (id, caller_name, caller_id, organization_id, notes, sale)
- VALUES (62c36092-82a1-3a00-93d1-46196ee77204, 'shervin', '949-419-4942',
- 7db1a490-5878-11e2-bcfd-0800200c9a66,
- 'Ojo Rojo', 8.5);
+) WITH COMPACT STORAGE;
+
+INSERT INTO Calls (id, caller_name, caller_id, organization_id, notes, sale)
+ VALUES (1, 'Shervin Shaikh', '949-419-4942', 1, 'Yummy...ice cream', 8.5);
+```
+[Data Types for Cassandra in CQL](http://www.datastax.com/documentation/cql/3.0/cql/cql_reference/cql_data_types_c.html)
+
+
+
+#### Create a new column family from broker
+```
+cf_def = CassandraThrift::CfDef.new(:keyspace => "RingBase", :name => "NewTableName")
+client.add_column_family(cf_def)
 ```

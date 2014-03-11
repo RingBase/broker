@@ -27,7 +27,7 @@ module Broker
     end
 
     def handle_api_call_transfer_completed(call)
-      Broker.server.client_broadcast('call_accepted', call)
+      Broker.server.client_broadcast('call_transfer_completed', call)
     end
 
     def handle_api_call_stop(call)

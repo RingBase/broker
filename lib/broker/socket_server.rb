@@ -45,8 +45,11 @@ module Broker
       Broker::InvocaAPI.publish(data.merge(type: 'call_accept'))
     end
 
+
+    # data: Hash with keys
+    #   'agent_id' - The ID of the agent to transfer to
+    #   'call_id' - The ID of the call to be transferred
     def handle_client_call_transfer_request(data)
-      # TODO: Query from Postgres the agent_id information
       Broker::InvocaAPI.publish(data.merge(type: 'call_transfer_request'))
     end
 
@@ -55,7 +58,7 @@ module Broker
       agent_id = data['agent_id']
       Channels[agent_id] = EM::Channel.new
       Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
-      Channels[agent_id] << format_event('join', { agent_id: agent_id })
+      #Channels[agent_id] << format_event('join', { agent_id: agent_id })
     end
 
     def client_broadcast(event, data)

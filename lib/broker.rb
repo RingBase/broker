@@ -21,7 +21,7 @@ module Broker
   extend self
 
   attr_accessor :server, :logger, :cassandra,
-                :channel, :exchange, :queue
+                :channel, :exchange, :queue, :client
 
   def config
     @config ||= YAML.load_file("config.yml")
@@ -75,10 +75,28 @@ module Broker
                                  "#{host}:#{port}",
                                  :transport_wrapper => nil,
                                  :transport => Thrift::EventMachineTransport)
-        puts @client.get(:calls, "\x00\x00\x00\x01")
+
+        # # use this to generate sample data
+        # cf_def = CassandraThrift::CfDef.new(:keyspace => "ringbase", :name => "calls")
+        # @client.add_column_family(cf_def)
+        # @client.insert(:calls, '1', { 'id' => '1', 'number' => '111-111-1111', 'name' => 'Alex', 'city' => 'Newbury Park'})
+        # @client.insert(:calls, '2', { 'id' => '2', 'number' => '222-222-2222', 'name' => 'James', 'city' => 'Santa Barbara'})
+        
         EM.stop
       end.resume
     end
   end
 
+  def get_calls_for(column, value)
+    @call_list = []
+    Fiber.new do
+      calls = []
+      @client.each_key(:calls) do |key|
+        row = @client.get(:calls, key)
+        @call_list << row
+      end
+    end
+    # @call_list no longer contains its value outside of the fiber? what do
+    @call_list
+  end
 end

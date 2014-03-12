@@ -121,6 +121,7 @@ module Invoca
   # TODO: this still creates a separate connection for each message
   # Probably a low priority.
   def send_event(json)
+    sleep(1)
     EM.schedule do
       connection,ex = create_exchange
       ex.publish(json, :routing_key => 'invoca_to_broker')
@@ -136,7 +137,7 @@ module Invoca
         'name' => Faker::Name.name,
         'email' => Faker::Internet.email,
         'city' => Faker::Address.city,
-        'number' => Faker::PhoneNumber.cell_phone
+        'number' => generate_phone_number
       }
     elsif
       payload = {}
@@ -149,6 +150,20 @@ module Invoca
 
       payload
     end
+  end
+
+  # Faker sucks at phone number formatting
+  def generate_phone_number
+    first  = rand_digits(3)
+    second = rand_digits(3)
+    third  = rand_digits(4)
+
+    "#{first}-#{second}-#{third}"
+  end
+
+  # Helper for phone number generator
+  def rand_digits(n)
+    n.times.map { rand(0..9) }.join
   end
 
 end

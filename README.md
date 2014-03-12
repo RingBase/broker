@@ -55,7 +55,7 @@ CREATE KEYSPACE ringbase WITH REPLICATION = { 'class' : 'SimpleStrategy', 'repli
 
 USE ringbase;
 
-CREATE TABLE Calls (
+CREATE COLUMNFAMILY Calls (
 id int PRIMARY KEY,
 caller_name text,
 caller_id text,

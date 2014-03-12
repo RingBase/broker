@@ -31,6 +31,12 @@ module Broker
       Broker::InvocaAPI.publish(data.merge(type: 'call_accept'))
     end
 
+    # TODO: hack for demo
+    def handle_client_update_notes(data)
+      agent_id = data.delete('agent_id')
+      peers = Channels.reject { |id, _| id == agent_id }
+      peers.each { |id, chan| chan << format_event('notes_updated', data) }
+    end
 
     # data: Hash with keys
     #   'agent_id' - The ID of the agent to transfer to

@@ -139,7 +139,7 @@ module Invoca
         'city' => Faker::Address.city,
         'number' => generate_phone_number
       }
-    elsif
+    else
       payload = {}
 
       %w(id name email city number).each do |attr|

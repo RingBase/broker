@@ -38,6 +38,10 @@ module Broker
       peers.each { |id, chan| chan << format_event('notes_updated', data) }
     end
 
+    def handle_client_update_textarea(data)
+      Channels.each { |id, chan| chan << format_event('textarea_updated', data) }
+    end
+
     # data: Hash with keys
     #   'agent_id' - The ID of the agent to transfer to
     #   'call_id' - The ID of the call to be transferred

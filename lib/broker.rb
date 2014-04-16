@@ -20,8 +20,9 @@ Goliath.run_app_on_exit = false
 module Broker
   extend self
 
-  attr_accessor :server, :logger, :cassandra,
-                :channel, :exchange, :queue, :client
+  attr_accessor :server, :logger,
+                :channel, :exchange, :queue,
+                :cassandra
 
   def config
     @config ||= YAML.load_file("config.yml")
@@ -65,17 +66,11 @@ module Broker
 
   def get_cassandra_client!
     host     = config['cassandra']['host']
-    port     = config['cassandra']['port']
+    #port     = config['cassandra']['port']
     keyspace = config['cassandra']['keyspace']
-    username = config['cassandra']['username']
-    password = config['cassandra']['password']
-    Broker.client = Cql::Client.connect(host: host, keyspace: keyspace)
-
-    # # use this to generate sample data
-    # cf_def = CassandraThrift::CfDef.new(:keyspace => "ringbase", :name => "calls")
-    # @client.add_column_family(cf_def)
-    # @client.insert(:calls, '1', { 'id' => '1', 'number' => '111-111-1111', 'name' => 'Alex', 'city' => 'Newbury Park'})
-    # @client.insert(:calls, '2', { 'id' => '2', 'number' => '222-222-2222', 'name' => 'James', 'city' => 'Santa Barbara'})
+    #username = config['cassandra']['username']
+    #password = config['cassandra']['password']
+    Broker.cassandra = Cql::Client.connect(host: host, keyspace: keyspace)
   end
 
   def get_calls

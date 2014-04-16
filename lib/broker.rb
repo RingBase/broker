@@ -23,12 +23,13 @@ module Broker
                 :channel, :exchange, :queue,
                 :cassandra
 
+  self.logger = Logger.new(STDOUT)
+
   def config
     @config ||= YAML.load_file("config.yml")
   end
 
   def run!
-    self.logger   = Logger.new(STDOUT)
 
     EventMachine.run do
       Broker.connect_amqp!

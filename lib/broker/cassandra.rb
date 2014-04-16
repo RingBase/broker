@@ -26,12 +26,17 @@ module Broker
       sale        = options.delete(:sale)
 
       query = "INSERT INTO calls (id, caller_id, caller_name, notes, organization_id, sale) VALUES (#{id}, #{caller_id}, #{caller_name}, #{notes}, #{organization_id}, #{sale})"
-      Broker.cassandra.execute(query)
+      execute(query)
     end
 
 
     def quote(value)
       value.nil? ? '' : "'#{value}'"
+    end
+
+    def execute(query)
+      Broker.log(query)
+      Broker.cassandra.execute(query)
     end
 
   end

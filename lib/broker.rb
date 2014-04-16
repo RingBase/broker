@@ -1,18 +1,17 @@
 $LOAD_PATH.unshift('lib')
 
-require 'strong_parameters'
+#require 'strong_parameters'
 require 'logger'
 require 'json'
 require 'yaml'
 require 'amqp'
 require 'eventmachine'
-require 'thrift_client'
-require 'thrift_client/event_machine'
 require 'cql'
 require 'goliath'
 require 'goliath/websocket'
 require 'broker/socket_server'
 require 'broker/invoca_api'
+require 'broker/cassandra'
 
 # Prevent Goliath from auto-running
 Goliath.run_app_on_exit = false
@@ -35,7 +34,7 @@ module Broker
       Broker.connect_amqp!
       Broker::InvocaAPI.listen
 
-      get_cassandra_client!
+      connect_cassandra!
 
       self.server   = Broker::SocketServer.new
       runner        = Goliath::Runner.new(ARGV, server)
@@ -64,16 +63,13 @@ module Broker
     logger.info(msg)
   end
 
-  def get_cassandra_client!
+  def connect_cassandra!
     host     = config['cassandra']['host']
     #port     = config['cassandra']['port']
     keyspace = config['cassandra']['keyspace']
     #username = config['cassandra']['username']
     #password = config['cassandra']['password']
-    Broker.cassandra = Cql::Client.connect(host: host, keyspace: keyspace)
+    Broker::Cassandra.connect!(host: host, keyspace: keyspace)
   end
 
-  def get_calls
-    # execute here
-  end
 end

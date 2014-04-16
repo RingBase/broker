@@ -23,7 +23,7 @@ module Broker
     def handle_client_list_calls(json)
       agent_id = json['agent_id']
       Broker.log("Listing calls for agent: #{agent_id}")
-      calls = Broker.get_calls_for('id',agent_id)
+      calls = Broker.get_calls
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
 

@@ -8,7 +8,7 @@ require 'amqp'
 require 'eventmachine'
 require 'thrift_client'
 require 'thrift_client/event_machine'
-require 'cassandra/1.2'
+require 'cql'
 require 'goliath'
 require 'goliath/websocket'
 require 'broker/socket_server'
@@ -30,11 +30,11 @@ module Broker
   def run!
     self.logger   = Logger.new(STDOUT)
 
-    get_cassandra_client!
-
     EventMachine.run do
       Broker.connect_amqp!
       Broker::InvocaAPI.listen
+
+      get_cassandra_client!
 
       self.server   = Broker::SocketServer.new
       runner        = Goliath::Runner.new(ARGV, server)
@@ -69,34 +69,16 @@ module Broker
     keyspace = config['cassandra']['keyspace']
     username = config['cassandra']['username']
     password = config['cassandra']['password']
-    EM.run do
-      Fiber.new do
-        @client = Cassandra.new(keyspace,
-                                 "#{host}:#{port}",
-                                 :transport_wrapper => nil,
-                                 :transport => Thrift::EventMachineTransport)
+    Broker.client = Cql::Client.connect(host: host, keyspace: keyspace)
 
-        # # use this to generate sample data
-        # cf_def = CassandraThrift::CfDef.new(:keyspace => "ringbase", :name => "calls")
-        # @client.add_column_family(cf_def)
-        # @client.insert(:calls, '1', { 'id' => '1', 'number' => '111-111-1111', 'name' => 'Alex', 'city' => 'Newbury Park'})
-        # @client.insert(:calls, '2', { 'id' => '2', 'number' => '222-222-2222', 'name' => 'James', 'city' => 'Santa Barbara'})
-        
-        EM.stop
-      end.resume
-    end
+    # # use this to generate sample data
+    # cf_def = CassandraThrift::CfDef.new(:keyspace => "ringbase", :name => "calls")
+    # @client.add_column_family(cf_def)
+    # @client.insert(:calls, '1', { 'id' => '1', 'number' => '111-111-1111', 'name' => 'Alex', 'city' => 'Newbury Park'})
+    # @client.insert(:calls, '2', { 'id' => '2', 'number' => '222-222-2222', 'name' => 'James', 'city' => 'Santa Barbara'})
   end
 
-  def get_calls_for(column, value)
-    @call_list = []
-    Fiber.new do
-      calls = []
-      @client.each_key(:calls) do |key|
-        row = @client.get(:calls, key)
-        @call_list << row
-      end
-    end
-    # @call_list no longer contains its value outside of the fiber? what do
-    @call_list
+  def get_calls
+    # execute here
   end
 end

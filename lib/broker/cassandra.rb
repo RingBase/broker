@@ -12,7 +12,12 @@ module Broker
 
     # TODO: this will need to take parameters, ex: organization_id
     def get_calls
-      # execute here
+      calls = []
+      rows = Broker.cassandra.execute("Select * from calls")
+      rows.each do |row|
+        calls << row
+      end
+      calls
     end
 
 

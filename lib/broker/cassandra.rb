@@ -13,7 +13,7 @@ module Broker
     # TODO: this will need to take parameters, ex: organization_id
     def get_calls
       calls = []
-      rows = Broker.cassandra.execute("Select * from calls")
+      rows = execute("Select * from calls")
       rows.each do |row|
         calls << row
       end
@@ -23,14 +23,16 @@ module Broker
 
     # TODO: remove this
     def insert_call(options={})
-      id          = options.delete(:id)
-      caller_id   = quote(options.delete(:caller_id))
-      caller_name = quote(options.delete(:caller_name))
-      notes       = quote(options.delete(:notes))
-      organization_id = options.delete(:organization_id)
-      sale        = options.delete(:sale)
+      id              = options.delete(:id)
+      name            = quote(options.delete(:name))
+      city            = quote(options.delete(:city))
+      number          = quote(options.delete(:number))
+      notes           = quote(options.delete(:notes))
+      organization_id = options.delete(:organization_id) # necessary?
+      sale            = options.delete(:sale)
+      status          = options.delete(:status)
 
-      query = "INSERT INTO calls (id, caller_id, caller_name, notes, organization_id, sale) VALUES (#{id}, #{caller_id}, #{caller_name}, #{notes}, #{organization_id}, #{sale})"
+      query = "INSERT INTO calls (id, name, city, number, notes, organization_id, sale, status) VALUES (#{id}, #{name}, #{city}, #{number}, #{notes}, #{organization_id}, #{sale}, #{status})"
       execute(query)
     end
 

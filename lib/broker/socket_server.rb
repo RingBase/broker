@@ -21,9 +21,10 @@ module Broker
     end
 
     def handle_client_list_calls(json)
+      org_id = json['org_id']
       agent_id = json['agent_id']
-      Broker.log("Listing calls for agent: #{agent_id}")
-      calls = Broker::Cassandra.get_calls
+      Broker.log("Listing calls for organization: #{org_id}")
+      calls = Broker::Cassandra.get_calls_for_organization(org_id)
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
 

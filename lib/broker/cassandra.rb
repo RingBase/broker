@@ -11,9 +11,9 @@ module Broker
 
 
     # TODO: this will need to take parameters, ex: organization_id
-    def get_calls
+    def get_calls_for_organization(organization_id)
       calls = []
-      rows = execute("Select * from calls")
+      rows = execute("Select * from calls where organization_id = #{organization_id}")
       rows.each do |row|
         calls << row
       end

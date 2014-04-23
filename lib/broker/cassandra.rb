@@ -32,7 +32,10 @@ module Broker
       sale            = options.delete(:sale)
       status          = options.delete(:status)
 
-      query = "INSERT INTO calls (id, name, city, number, notes, organization_id, sale, status) VALUES (#{id}, #{name}, #{city}, #{number}, #{notes}, #{organization_id}, #{sale}, #{status})"
+      query = <<-EOS
+        INSERT INTO calls (id, name, city, number, notes, organization_id, sale, status)
+        VALUES (#{id}, #{name}, #{city}, #{number}, #{notes}, #{organization_id}, #{sale}, #{status})
+      EOS
       execute(query)
     end
 

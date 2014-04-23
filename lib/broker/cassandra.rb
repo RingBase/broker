@@ -2,7 +2,6 @@ module Broker
   module Cassandra
     extend self
 
-
     def connect!(options={})
       host     = options.delete(:host)
       keyspace = options.delete(:keyspace)
@@ -39,6 +38,7 @@ module Broker
       execute(query)
     end
 
+    private
 
     def quote(value)
       value.nil? ? '' : "'#{value}'"

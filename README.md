@@ -56,23 +56,34 @@ CREATE KEYSPACE ringbase WITH REPLICATION = { 'class' : 'SimpleStrategy', 'repli
 USE ringbase;
 
 CREATE COLUMNFAMILY Calls (
-id int PRIMARY KEY,
-caller_name text,
-caller_id text,
+id uuid PRIMARY KEY,
+name text,
+number text,
+city text,
 organization_id int,
 notes text,
-sale double
+sale double,
+status text
 ) WITH COMPACT STORAGE;
 
-INSERT INTO Calls (id, caller_name, caller_id, organization_id, notes, sale)
- VALUES (1, 'Shervin Shaikh', '949-419-4942', 1, 'Yummy...ice cream', 8.5);
+INSERT INTO Calls (id, name, number, city, organization_id, notes, sale, status)
+ VALUES (f0b228d0-ca7c-11e3-9c1a-0800200c9a66, 'Shervin Shake', '949-419-4942', 'Compton', 1, 'Yummy...ice cream', 8.5, 'incoming');
 ```
 [Data Types for Cassandra in CQL](http://www.datastax.com/documentation/cql/3.0/cql/cql_reference/cql_data_types_c.html)
 
+### Indexing
+Setting up Cassandra indices to perform queries
+```
+CREATE INDEX ON Calls (name);
+CREATE INDEX ON Calls (number);
+CREATE INDEX ON Calls (city);
+CREATE INDEX ON Calls (organization_id);
+CREATE INDEX ON Calls (sale);
+CREATE INDEX ON Calls (status);
 
 
-#### Create a new column family from broker
-```
-cf_def = CassandraThrift::CfDef.new(:keyspace => "RingBase", :name => "NewTableName")
-client.add_column_family(cf_def)
-```
+
+
+
+
+

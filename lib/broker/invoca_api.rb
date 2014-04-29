@@ -18,21 +18,54 @@ module Broker
       send("handle_api_#{type}", call)
     end
 
-    def handle_api_call_start(call)
-      Broker.server.client_broadcast('call_start', call)
+
+
+    # TODO:
+    #
+    # call_update
+    #   Sent when call is updated, in any state.  The first event for a call will be "parked". The final will be "stopped".
+    #
+    #   {
+    #     "type": "call_update",
+    #     "call_uuid": "asdf87-kjh2-kjh1skl",
+    #     "call_state": "parked" | "bridging" | "bridged" | "stopped"
+    #     "detail": "Caller hung up" | "Phone wasn't answered" | "Phone was busy" | ...
+    #   }
+
+
+
+    def handle_call_update(json)
+      raise NotImplementedError
+      # TODO: figure out state change and broadcast appropriate message
+      # to client over socket server
     end
 
-    def handle_api_call_accepted(call)
-      Broker.server.client_broadcast('call_accepted', call)
-    end
 
-    def handle_api_call_transfer_completed(call)
-      Broker.server.client_broadcast('call_transfer_completed', call)
-    end
 
-    def handle_api_call_stop(call)
-      Broker.server.client_broadcast('call_stop', call)
-    end
+
+
+
+
+    # def handle_api_call_start(call)
+    #   Broker.server.client_broadcast('call_start', call)
+    # end
+
+    # def handle_api_call_accepted(call)
+    #   Broker.server.client_broadcast('call_accepted', call)
+    # end
+
+    # def handle_api_call_transfer_completed(call)
+    #   Broker.server.client_broadcast('call_transfer_completed', call)
+    # end
+
+    # def handle_api_call_stop(call)
+    #   Broker.server.client_broadcast('call_stop', call)
+    # end
+
+
+
+
+
 
     def publish(json)
       Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')

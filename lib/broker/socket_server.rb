@@ -20,6 +20,28 @@ module Broker
       env.logger.info('Closing')
     end
 
+
+    # TODO: these are the only 2 events we send Invoca
+    #
+    # bridge_to
+    #   - Encompasses request to call accept and transfer
+    #   {
+    #     "type" : "bridge_to",
+    #     "call_uuid": "asdf87-kjh2-kjh1skl",
+    #     "country_code": "1",
+    #     "national_number": "7073227256
+    #   }
+    #
+    #
+    #
+    # call_stop
+    #   {
+    #     "type" : "stop_call",
+    #     "call_uuid": "asdf87-kjh2-kjh1skl"
+    #   }
+
+
+
     def handle_client_list_calls(json)
       org_id = json['org_id']
       agent_id = json['agent_id']

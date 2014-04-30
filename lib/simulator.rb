@@ -16,6 +16,13 @@ require 'faker'
 module Invoca
   extend self
 
+
+
+
+
+  # TOOD: write back to RingBase over the update_exchange
+
+
   # Publisher
   # ---------------------------------------
   def send_call_start(call_opts=nil)
@@ -51,6 +58,12 @@ module Invoca
   end
 
 
+
+
+
+
+
+
   # Subscriber
   # ---------------------------------------
 
@@ -61,15 +74,21 @@ module Invoca
     host     = config['rabbitmq']['host']
     port     = config['rabbitmq']['port']
     connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
-    channel    = AMQP::Channel.new(connection)
-    queue      = channel.queue("broker_to_invoca", :auto_delete => true)
+
+
+    #channel    = AMQP::Channel.new(connection)
+    #queue      = channel.queue("broker_to_invoca", :auto_delete => true)
+
+
+    # TODO: listen on the control queue,
 
     puts "Established connection, listening for messages over AMQP..."
-    queue.subscribe do |payload|
-      puts("API LISTENER GOT PAYLOAD: #{payload}")
-      json = JSON.parse(payload)
-      process(json)
-    end
+
+    # queue.subscribe do |payload|
+    #   puts("API LISTENER GOT PAYLOAD: #{payload}")
+    #   json = JSON.parse(payload)
+    #   process(json)
+    # end
   end
 
   def process(json)
@@ -94,12 +113,21 @@ module Invoca
     send_call_transfer_completed(call)
   end
 
+
+
+
+
+
+
+
+
   private
 
   def config
     @config ||= YAML.load_file("config.yml")
   end
 
+  # Publisher helper
   def create_connection
     username = config['rabbitmq']['username']
     password = config['rabbitmq']['password']
@@ -108,26 +136,35 @@ module Invoca
     AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
   end
 
+  # Publisher helper
   def create_exchange
     connection = create_connection
     ch = AMQP::Channel.new(connection)
-    ex = ch.default_exchange
+    #ex = ch.default_exchange
+    update_exchange_name = config['update_exchange_name']
+    ex = ch.fanout(update_exchange_name)
+
     [connection, ex]
   end
 
-  # Create a new connection and exchange for each event
+
+
+  # Publisher: create a new connection and exchange for each event
   # This is obviously not good, but it's only a temporary simulator
-  #
-  # TODO: this still creates a separate connection for each message
-  # Probably a low priority.
   def send_event(json)
     sleep(1)
     EM.schedule do
       connection,ex = create_exchange
-      ex.publish(json, :routing_key => 'invoca_to_broker')
+      ex.publish(json)
       EM.add_timer(0.5) { connection.close }
     end
   end
+
+
+
+
+
+
 
 
   def generate_call(call_opts=nil)

@@ -10,8 +10,8 @@ module Broker
 
     def on_message(env, raw_json)
       json = JSON.parse(raw_json)
-      type = json.delete('type') or raise 'Missing required param: type'
-      json['agent_id'] or raise 'Missing required param: agent_id'
+      type = json['type'] or raise 'Missing required param: type'
+      #json['agent_id'] or raise 'Missing required param: agent_id'
       send("handle_client_#{type}", json)
     end
 
@@ -19,6 +19,11 @@ module Broker
     def on_close(env)
       env.logger.info('Closing')
     end
+
+
+
+
+
 
 
     # TODO: these are the only 2 events we send Invoca
@@ -31,17 +36,44 @@ module Broker
     #     "country_code": "1",
     #     "national_number": "7073227256
     #   }
-    #
-    #
-    #
+    def handle_client_bridge_to(data)
+      Broker.log("SS received bridge_to, forwarding to Invoca")
+      Broker::InvocaAPI.publish(data)
+    end
+
+
     # call_stop
     #   {
     #     "type" : "stop_call",
     #     "call_uuid": "asdf87-kjh2-kjh1skl"
     #   }
+    def handle_client_call_stop(data)
+      Broker.log("SS received call_stop, forwarding to Invoca")
+      Broker::InvocaAPI.publish(data)
+    end
 
 
 
+
+
+
+
+
+
+
+
+
+
+    def handle_client_login(data)
+      agent_id = data['agent_id']
+      Channels[agent_id] = EM::Channel.new
+      Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
+      #Channels[agent_id] << format_event('join', { agent_id: agent_id })
+    end
+
+
+    # Sent by client after login to populate call table data
+    # json - TODO
     def handle_client_list_calls(json)
       org_id = json['org_id']
       agent_id = json['agent_id']
@@ -50,9 +82,26 @@ module Broker
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
 
-    def handle_client_call_accept(data)
-      Broker::InvocaAPI.publish(data.merge(type: 'call_accept'))
-    end
+
+
+
+
+    # def handle_client_call_accept(data)
+    #   Broker::InvocaAPI.publish(data)
+    # end
+
+    # data: Hash with keys
+    #   'agent_id' - The ID of the agent to transfer to
+    #   'call_id' - The ID of the call to be transferred
+    # def handle_client_call_transfer_request(data)
+    #   Broker::InvocaAPI.publish(data.merge(type: 'call_transfer_request'))
+    # end
+
+
+
+
+
+
 
     # TODO: hack for demo
     def handle_client_update_notes(data)
@@ -65,21 +114,16 @@ module Broker
       Channels.each { |id, chan| chan << format_event('textarea_updated', data) }
     end
 
-    # data: Hash with keys
-    #   'agent_id' - The ID of the agent to transfer to
-    #   'call_id' - The ID of the call to be transferred
-    def handle_client_call_transfer_request(data)
-      Broker::InvocaAPI.publish(data.merge(type: 'call_transfer_request'))
-    end
 
-    # TODO: understand subscribe()
-    def handle_client_login(data)
-      agent_id = data['agent_id']
-      Channels[agent_id] = EM::Channel.new
-      Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
-      #Channels[agent_id] << format_event('join', { agent_id: agent_id })
-    end
 
+
+
+
+
+
+
+
+    # Broadcast a message to all clients
     def client_broadcast(event, data)
       Channels.each { |id, chan| chan << format_event(event, data) }
     end

@@ -20,7 +20,7 @@ module Broker
   extend self
 
   attr_accessor :server, :logger,
-                :channel, :exchange, :queue,
+                :channel, :control_queue, :update_exchange, :update_queue,
                 :cassandra
 
   self.logger = Logger.new(STDOUT)
@@ -56,8 +56,21 @@ module Broker
     connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
 
     self.channel  = AMQP::Channel.new(connection)
-    self.queue    = self.channel.queue("invoca_to_broker", :auto_delete => true)
-    self.exchange = self.channel.default_exchange
+    #self.queue    = self.channel.queue("invoca_to_broker", :auto_delete => true)
+    #self.queue    = self.channel.queue("", exclusive: true)
+    #self.exchange = self.channel.default_exchange
+
+
+    # RingBase -> Invoca control queue
+    control_channel_queue_name = config['control_channel_queue_name']
+    self.control_queue = channel.queue(control_channel_queue_name, auto_delete: true)
+
+
+    # Invoca -> RingBase update exchange
+    update_exchange_name = config['update_exchange_name']
+    self.update_exchange = channel.fanout(update_exchange_name)
+    self.update_queue    = channel.queue('', exclusive: true)
+    update_queue.bind(update_exchange)
   end
 
   def log(msg)

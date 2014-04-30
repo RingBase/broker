@@ -5,7 +5,8 @@ module Broker
     extend self
 
     def listen
-      Broker.queue.subscribe do |payload|
+      Broker.log("InvocaAPI AMQP listener is listening on '#{Broker.config['update_exchange_name']}'")
+      Broker.update_queue.subscribe do |payload|
         Broker.log("InvocaApi AMQP listener got payload: #{payload}")
         json = JSON.parse(payload)
         process(json)
@@ -19,11 +20,22 @@ module Broker
     end
 
 
+    # json  - Hash of json data
+    def publish(json)
+      #Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')
+
+      Broker.log("InvocaAPI publishing to control queue: #{json}")
+      payload = JSON.dump(json) # Stringify JSON
+      self.control_queue.publish(payload)
+    end
+
+
 
     # TODO:
     #
     # call_update
-    #   Sent when call is updated, in any state.  The first event for a call will be "parked". The final will be "stopped".
+    #   Sent when call is updated, in any state.
+    #   The first event for a call will be "parked". The final will be "stopped".
     #
     #   {
     #     "type": "call_update",
@@ -31,9 +43,6 @@ module Broker
     #     "call_state": "parked" | "bridging" | "bridged" | "stopped"
     #     "detail": "Caller hung up" | "Phone wasn't answered" | "Phone was busy" | ...
     #   }
-
-
-
     def handle_call_update(json)
       raise NotImplementedError
       # TODO: figure out state change and broadcast appropriate message
@@ -67,9 +76,6 @@ module Broker
 
 
 
-    def publish(json)
-      Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')
-    end
 
   end
 end

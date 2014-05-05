@@ -55,19 +55,22 @@ CREATE KEYSPACE ringbase WITH REPLICATION = { 'class' : 'SimpleStrategy', 'repli
 
 USE ringbase;
 
+
 CREATE COLUMNFAMILY Calls (
-id uuid PRIMARY KEY,
-name text,
-number text,
-city text,
-organization_id int,
+call_uuid uuid PRIMARY KEY,
+state text,
+calling_country_code text,
+calling_national_number text,
+called_country_code text,
+called_national_number text,
+caller_name text,
 notes text,
-sale double,
-status text
+sale_currency text,
+sale_amount text
 ) WITH COMPACT STORAGE;
 
-INSERT INTO Calls (id, name, number, city, organization_id, notes, sale, status)
- VALUES (f0b228d0-ca7c-11e3-9c1a-0800200c9a66, 'Shervin Shake', '949-419-4942', 'Compton', 1, 'Yummy...ice cream', 8.5, 'incoming');
+INSERT INTO Calls (call_uuid, state, calling_country_code, calling_national_number, called_country_code, called_national_number, caller_name, notes, sale_currency, sale_amount)
+ VALUES (f0b228d0-ca7c-11e3-9c1a-0800200c9a66, 'parked', '1', '8056213030', '1', '8003334444', 'Joe Smith', 'one\ntwo', 'USD', '25.32');
 ```
 [Data Types for Cassandra in CQL](http://www.datastax.com/documentation/cql/3.0/cql/cql_reference/cql_data_types_c.html)
 

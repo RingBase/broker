@@ -29,8 +29,8 @@ module Broker
     @config ||= YAML.load_file("config.yml")
   end
 
-  def run!
 
+  def run!
     EventMachine.run do
       Broker.connect_amqp!
       Broker::InvocaAPI.listen
@@ -45,21 +45,15 @@ module Broker
     end
   end
 
-  # start an AMQP broker connection and set up the inbound listener queue
+
+  # Start an AMQP broker connection and set up the inbound listener queue
   def connect_amqp!
     username = config['rabbitmq']['username']
     password = config['rabbitmq']['password']
     host     = config['rabbitmq']['host']
     port     = config['rabbitmq']['port']
-    puts "connecting to amqp://#{username}:#{password}@#{host}:#{port}"
-
     connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
-
     self.channel  = AMQP::Channel.new(connection)
-    #self.queue    = self.channel.queue("invoca_to_broker", :auto_delete => true)
-    #self.queue    = self.channel.queue("", exclusive: true)
-    #self.exchange = self.channel.default_exchange
-
 
     # RingBase -> Invoca control queue
     control_channel_queue_name = config['control_channel_queue_name']
@@ -73,9 +67,11 @@ module Broker
     update_queue.bind(update_exchange)
   end
 
+
   def log(msg)
     logger.info(msg)
   end
+
 
   def connect_cassandra!
     host     = config['cassandra']['host']

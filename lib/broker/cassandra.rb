@@ -2,6 +2,18 @@ module Broker
   module Cassandra
     extend self
 
+    CALL_FIELDS = %w(
+      state
+      calling_country_code
+      calling_national_number
+      called_country_code
+      called_national_number
+      caller_name
+      notes
+      sale_currency
+      sale_amount
+    )
+
     def connect!(options={})
       host     = options.delete(:host)
       keyspace = options.delete(:keyspace)
@@ -9,10 +21,12 @@ module Broker
     end
 
 
-    # TODO: this will need to take parameters, ex: organization_id
+    # TODO: calls doesn't have an organization id column!
+    # How to identify?
+    #
     def get_calls_for_organization(organization_id)
       calls = []
-      rows = execute("Select * from calls where organization_id = #{organization_id}")
+      rows = execute("SELECT * FROM Calls")
       rows.each do |row|
         calls << row
       end
@@ -20,20 +34,14 @@ module Broker
     end
 
 
-    # TODO: remove this
     def insert_call(options={})
-      id              = options.delete(:id)
-      name            = quote(options.delete(:name))
-      city            = quote(options.delete(:city))
-      number          = quote(options.delete(:number))
-      notes           = quote(options.delete(:notes))
-      organization_id = options.delete(:organization_id) # necessary?
-      sale            = options.delete(:sale)
-      status          = options.delete(:status)
+      call_uuid = options.delete(:call_uuid)
+      call_attributes = options.values_at(*CALL_FIELDS.map(&:to_sym))
+                               .map { |attr| quote(attr) }
 
       query = <<-EOS
-        INSERT INTO calls (id, name, city, number, notes, organization_id, sale, status)
-        VALUES (#{id}, #{name}, #{city}, #{number}, #{notes}, #{organization_id}, #{sale}, #{status})
+        INSERT INTO Calls (call_uuid, #{CALL_FIELDS.join(',')})
+        VALUES (#{call_uuid}, #{call_attributes.join(',')});
       EOS
       execute(query)
     end

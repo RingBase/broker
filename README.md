@@ -70,7 +70,7 @@ sale_amount text
 ) WITH COMPACT STORAGE;
 
 INSERT INTO Calls (call_uuid, state, calling_country_code, calling_national_number, called_country_code, called_national_number, caller_name, notes, sale_currency, sale_amount)
- VALUES (f0b228d0-ca7c-11e3-9c1a-0800200c9a66, 'parked', '1', '8056213030', '1', '8003334444', 'Joe Smith', 'one\ntwo', 'USD', '25.32');
+ VALUES (f0b228d0-ca7c-11e3-9c1a-0800200c9a66, 'parked', '1', '8056213030', '1', '5551234567', 'Joe Smith', 'one\ntwo', 'USD', '25.32');
 ```
 [Data Types for Cassandra in CQL](http://www.datastax.com/documentation/cql/3.0/cql/cql_reference/cql_data_types_c.html)
 

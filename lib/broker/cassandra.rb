@@ -21,12 +21,10 @@ module Broker
     end
 
 
-    # TODO: calls doesn't have an organization id column!
-    # How to identify?
-    #
-    def get_calls_for_organization(organization_id)
+    # organization_pilot_number - String phone number of the organization being called
+    def get_calls_for_organization(organization_pilot_number)
       calls = []
-      rows = execute("SELECT * FROM Calls")
+      rows = execute("SELECT * FROM Calls WHERE called_national_number = #{organization_pilot_number}")
       rows.each do |row|
         calls << row
       end

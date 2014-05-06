@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module Broker
   module Cassandra
     extend self
@@ -21,20 +23,25 @@ module Broker
     end
 
 
+    # Retrieve an Array of call attributes hashes for an Organization with a given
+    # pilot_number aka called_national_number
+    #
     # organization_pilot_number - String phone number of the organization being called
+    #
+    # Returns Array[Hash]
     def get_calls_for_organization(organization_pilot_number)
-      calls = []
-      rows = execute("SELECT * FROM Calls WHERE called_national_number = '#{organization_pilot_number}'")
-      rows.each do |row|
-        calls << row
-      end
-      calls
+      execute("SELECT * FROM Calls WHERE called_national_number = '#{organization_pilot_number}'").to_a
     end
 
 
-    def insert_call(options={})
-      call_uuid = options.delete(:call_uuid)
-      call_attributes = options.values_at(*CALL_FIELDS.map(&:to_sym))
+    # Insert a call into Cassandra for testing
+    #
+    # attrs - Hash of call attributes, all required (see CALL_FIELDS)
+    #
+    # Returns nothing
+    def insert_call(attrs={})
+      call_uuid = quote(SecureRandom.uuid)
+      call_attributes = attrs.values_at(*CALL_FIELDS.map(&:to_sym))
                                .map { |attr| quote(attr) }
 
       query = <<-EOS

@@ -72,13 +72,15 @@ module Broker
     end
 
 
-    # Sent by client after login to populate call table data
+    # Request from client after login to populate call table
+    #
     # json - TODO
+    #
     def handle_client_list_calls(json)
-      org_id = json['org_id']
+      org_pilot_number = json['org_pilot_number']
       agent_id = json['agent_id']
-      Broker.log("Listing calls for organization: #{org_id}")
-      calls = Broker::Cassandra.get_calls_for_organization(org_id)
+      Broker.log("Listing calls for organization w/ pilot number: #{org_pilot_number}")
+      calls = Broker::Cassandra.get_calls_for_organization(org_pilot_number)
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
 

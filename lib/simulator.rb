@@ -76,9 +76,11 @@ module Invoca
     connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
 
 
-    #channel    = AMQP::Channel.new(connection)
+    channel    = AMQP::Channel.new(connection)
     #queue      = channel.queue("broker_to_invoca", :auto_delete => true)
 
+    control_channel_queue_name = config['control_channel_queue_name']
+    queue = channel.queue(control_channel_queue_name, auto_delete: true)
 
     # TODO: listen on the control queue,
 
@@ -89,13 +91,32 @@ module Invoca
     #   json = JSON.parse(payload)
     #   process(json)
     # end
+
+    queue.subscribe do |payload|
+      json = JSON.parse(payload)
+      process(json)
+    end
   end
 
   def process(json)
+    puts "PROCESS got json #{json}"
+
+
     type = json['type']
-    call = json['call']
-    send("sim_receive_#{type}", call)
+    send("sim_receive_#{type}", json)
   end
+
+
+
+  # json - Hash of
+  #   type
+  #   call_uuid
+  #   country_code
+  #   national_number
+  def sim_receive_bridge_to(json)
+
+  end
+
 
   # Receive a call accept message and immediately send
   # call_accepted ack

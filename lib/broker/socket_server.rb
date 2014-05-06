@@ -5,7 +5,8 @@ module Broker
     Channels = {}
 
     def on_open(env)
-      env.logger.info('Opening')
+      #env.logger.info('[SocketServer] Opening connection')
+      Broker.log('[SocketServer] Opening connection')
     end
 
     def on_message(env, raw_json)
@@ -17,7 +18,8 @@ module Broker
 
     # TODO: How to properly remove channel state?
     def on_close(env)
-      env.logger.info('Closing')
+      #env.logger.info('[SocketServer] Closing connection')
+      Broker.log('[SocketServer] Closing connection')
     end
 
 
@@ -26,30 +28,35 @@ module Broker
 
 
 
-    # TODO: these are the only 2 events we send Invoca
+    # bridge_to encompasses request to call accept and transfer
     #
-    # bridge_to
-    #   - Encompasses request to call accept and transfer
-    #   {
-    #     "type" : "bridge_to",
-    #     "call_uuid": "asdf87-kjh2-kjh1skl",
-    #     "country_code": "1",
-    #     "national_number": "7073227256
-    #   }
+    # data - Hash of
+    #   :agent - Agent attributes hash
+    #   :call - Call record hash
+    #
     def handle_client_bridge_to(data)
-      Broker.log("SS received bridge_to, forwarding to Invoca")
-      Broker::InvocaAPI.publish(data)
+      Broker.log("[SocketServer] Received bridge_to, forwarding to Invoca")
+
+      call_uuid       = data['call']['call_uuid']
+      national_number = data['agent']['phone_number']
+
+      Broker::InvocaAPI.publish({
+       type: 'bridge_to' ,
+       call_uuid: call_uuid,
+       country_code: '1',
+       national_number: national_number
+      })
     end
 
 
-    # call_stop
+    # call_stop sent by client when agent hangs up
     #   {
     #     "type" : "stop_call",
     #     "call_uuid": "asdf87-kjh2-kjh1skl"
     #   }
-    def handle_client_call_stop(data)
-      Broker.log("SS received call_stop, forwarding to Invoca")
-      Broker::InvocaAPI.publish(data)
+    def handle_client_call_stop(call_attrs)
+      Broker.log('[SocketServer] Received call_stop, forwarding to Invoca')
+      Broker::InvocaAPI.publish(call_attrs)
     end
 
 
@@ -78,8 +85,9 @@ module Broker
     #
     def handle_client_list_calls(json)
       org_pilot_number = json['org_pilot_number']
-      agent_id = json['agent_id']
-      Broker.log("Listing calls for organization w/ pilot number: #{org_pilot_number}")
+      agent_id         = json['agent_id']
+
+      Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}")
       calls = Broker::Cassandra.get_calls_for_organization(org_pilot_number)
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
@@ -147,7 +155,7 @@ module Broker
     def stop
       EM.next_tick do
         EM.stop
-        Broker.log("Stopped")
+        Broker.log("[SocketServer] Stopped")
       end
     end
 

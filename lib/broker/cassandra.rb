@@ -58,7 +58,7 @@ module Broker
     end
 
     def execute(query)
-      Broker.log(query)
+      Broker.log("[Cassandra] '#{query}'")
       Broker.cassandra.execute(query)
     end
 

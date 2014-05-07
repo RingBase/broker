@@ -88,7 +88,7 @@ module Broker
       agent_id         = json['agent_id']
 
       Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}")
-      calls = Broker::Cassandra.get_calls_for_organization(org_pilot_number)
+      calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
       Channels[agent_id] << format_event('call_list', { calls: calls })
     end
 

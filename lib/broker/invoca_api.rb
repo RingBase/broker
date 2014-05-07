@@ -16,7 +16,7 @@ module Broker
     def process(json)
       type = json['type']
       call = json['call']
-      send("handle_api_#{type}", call)
+      send("handle_api_#{type}", json)
     end
 
 
@@ -44,9 +44,14 @@ module Broker
     #     "detail": "Caller hung up" | "Phone wasn't answered" | "Phone was busy" | ...
     #   }
     def handle_api_call_update(json)
-      raise NotImplementedError
+      # raise NotImplementedError
       # TODO: figure out state change and broadcast appropriate message
       # to client over socket server
+      Broker.log(json)
+      # Broker.log(json.call_state)
+
+      # TODO: find actual data in Cassandra then client_broadcast over client data
+      Broker.log(Broker::Cassandra2.get_data(json["call_uuid"]))
     end
 
 
@@ -55,9 +60,9 @@ module Broker
 
 
 
-    # def handle_api_call_start(call)
-    #   Broker.server.client_broadcast('call_start', call)
-    # end
+    def handle_api_call_start(call)
+      Broker.server.client_broadcast('call_start', call)
+    end
 
     # def handle_api_call_accepted(call)
     #   Broker.server.client_broadcast('call_accepted', call)

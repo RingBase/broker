@@ -73,7 +73,8 @@ module Invoca
     password = config['rabbitmq']['password']
     host     = config['rabbitmq']['host']
     port     = config['rabbitmq']['port']
-    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
+    vhost    = config['rabbitmq']['vhost']
+    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}")
 
 
     channel    = AMQP::Channel.new(connection)
@@ -85,12 +86,6 @@ module Invoca
     # TODO: listen on the control queue,
 
     puts "Established connection, listening for messages over AMQP..."
-
-    # queue.subscribe do |payload|
-    #   puts("API LISTENER GOT PAYLOAD: #{payload}")
-    #   json = JSON.parse(payload)
-    #   process(json)
-    # end
 
     queue.subscribe do |payload|
       json = JSON.parse(payload)

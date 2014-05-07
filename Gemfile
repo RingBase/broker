@@ -16,7 +16,9 @@ gem "thrift_client", "~> 0.8.4"
 
 gem 'rake', '~> 10.1.1'
 
-#gem 'strong_parameters', :git => 'git://github.com/andrewberls/strong_parameters.git'
+gem 'cassandra', '~> 0.23.0'
+
+# gem 'strong_parameters', :git => 'git://github.com/andrewberls/strong_parameters.git'
 
 group :development, :test do
   gem 'faker', '~> 1.2.0'

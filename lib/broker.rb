@@ -36,6 +36,7 @@ module Broker
       Broker::InvocaAPI.listen
 
       connect_cassandra!
+      # connect_messaging!
 
       self.server   = Broker::SocketServer.new
       runner        = Goliath::Runner.new(ARGV, server)
@@ -52,7 +53,10 @@ module Broker
     password = config['rabbitmq']['password']
     host     = config['rabbitmq']['host']
     port     = config['rabbitmq']['port']
-    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
+    vhost    = config['rabbitmq']['vhost']
+
+    puts "connecting to amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}"
+    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}")
     self.channel  = AMQP::Channel.new(connection)
 
     # RingBase -> Invoca control queue
@@ -65,10 +69,14 @@ module Broker
     self.update_exchange = channel.fanout(update_exchange_name)
     self.update_queue    = channel.queue('', exclusive: true)
     update_queue.bind(update_exchange)
+
+    # self.queue    = self.channel.queue("invoca.ringswitch.call_updates", :auto_delete => true)
+    # self.exchange = self.channel.default_exchange
   end
 
 
   def log(msg)
+    puts "trying to log: #{msg}"
     logger.info(msg)
   end
 
@@ -79,7 +87,7 @@ module Broker
     keyspace = config['cassandra']['keyspace']
     #username = config['cassandra']['username']
     #password = config['cassandra']['password']
-    Broker::Cassandra.connect!(host: host, keyspace: keyspace)
+    Broker::Cassandra2.connect!(host: host, keyspace: keyspace)
   end
 
 end

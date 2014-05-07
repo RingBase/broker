@@ -83,11 +83,11 @@ module Broker
 
   def connect_cassandra!
     host     = config['cassandra']['host']
-    #port     = config['cassandra']['port']
+    port     = config['cassandra']['port']
     keyspace = config['cassandra']['keyspace']
     #username = config['cassandra']['username']
     #password = config['cassandra']['password']
-    Broker::Cassandra2.connect!(host: host, keyspace: keyspace)
+    Broker::Cassandra2.connect!(host: host, keyspace: keyspace, port: port)
   end
 
 end

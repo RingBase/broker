@@ -20,8 +20,9 @@ module Broker
     def connect!(options={})
       host     = options.delete(:host)
       keyspace = options.delete(:keyspace)
+      port     = options.delete(:port)
       # Broker.cassandra = Cql::Client.connect(host: host, keyspace: keyspace)
-      Broker.cassandra = Cassandra.new('Invoca','54.205.97.161:9160', :connect_timeout => 10000)
+      Broker.cassandra = Cassandra.new(keyspace, "#{host}:#{port}", :connect_timeout => 10000)
       puts "Connected to cassandra #{host}, #{keyspace}"
       test_function
     end

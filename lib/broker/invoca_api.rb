@@ -51,7 +51,16 @@ module Broker
       # Broker.log(json.call_state)
 
       # TODO: find actual data in Cassandra then client_broadcast over client data
-      Broker.log(Broker::Cassandra2.get_data(json["call_uuid"]))
+      call = Broker::Cassandra2.get_data(json["call_uuid"])
+      call_state = json["call_state"]
+      call["id"] = json["call_uuid"]
+
+      # TODO: clean this up
+      if(call_state == "parked")
+        handle_api_call_start(call)
+      elsif(call_state == "stopped")
+        handle_api_call_stop(call)
+      end
     end
 
 
@@ -72,9 +81,9 @@ module Broker
     #   Broker.server.client_broadcast('call_transfer_completed', call)
     # end
 
-    # def handle_api_call_stop(call)
-    #   Broker.server.client_broadcast('call_stop', call)
-    # end
+    def handle_api_call_stop(call)
+      Broker.server.client_broadcast('call_stop', call)
+    end
 
 
 

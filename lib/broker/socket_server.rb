@@ -37,15 +37,25 @@ module Broker
     def handle_client_bridge_to(data)
       Broker.log("[SocketServer] Received bridge_to, forwarding to Invoca")
 
-      call_uuid       = data['call']['call_uuid']
+      call_uuid       = data['call']['id']
       national_number = data['agent']['phone_number']
 
-      Broker::InvocaAPI.publish({
-       type: 'bridge_to' ,
-       call_uuid: call_uuid,
-       country_code: '1',
-       national_number: national_number
-      })
+      # Broker::InvocaAPI.publish({
+      #  type: 'bridge_to' ,
+      #  call_uuid: call_uuid,
+      #  country_code: '1',
+      #  national_number: national_number
+      # })
+
+      bridge_msg = {
+        "type" => "bridge_to",
+        "call_uuid" => call_uuid, #{}"a64539b1-79b7-4a07-9f94-12bad3b7c834",
+        "country_code" => "1",
+        "national_number" => national_number
+      }
+
+
+      Broker.control_queue.publish(bridge_msg.to_json)
     end
 
 

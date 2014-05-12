@@ -40,20 +40,12 @@ module Broker
       call_uuid       = data['call']['id']
       national_number = data['agent']['phone_number']
 
-      # Broker::InvocaAPI.publish({
-      #  type: 'bridge_to' ,
-      #  call_uuid: call_uuid,
-      #  country_code: '1',
-      #  national_number: national_number
-      # })
-
       bridge_msg = {
         "type" => "bridge_to",
         "call_uuid" => call_uuid, #{}"a64539b1-79b7-4a07-9f94-12bad3b7c834",
         "country_code" => "1",
         "national_number" => national_number
       }
-
 
       Broker.control_queue.publish(bridge_msg.to_json)
     end
@@ -66,7 +58,14 @@ module Broker
     #   }
     def handle_client_call_stop(call_attrs)
       Broker.log('[SocketServer] Received call_stop, forwarding to Invoca')
-      Broker::InvocaAPI.publish(call_attrs)
+      Broker.log(call_attrs)
+
+      hangup_msg = {
+        "type" => "hangup",
+        "call_uuid" => call_attrs['id']
+      }
+
+      Broker.control_queue.publish(hangup_msg.to_json)
     end
 
 

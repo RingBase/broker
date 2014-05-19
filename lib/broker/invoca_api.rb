@@ -26,6 +26,7 @@ module Broker
 
       Broker.log("[InvocaAPI] Publishing to control queue: #{json}")
       payload = JSON.dump(json) # Stringify JSON
+      Broker.emit_node_event('broker-invoca')
       Broker.control_queue.publish(payload)
     end
 

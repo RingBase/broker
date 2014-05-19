@@ -1,6 +1,5 @@
 $LOAD_PATH.unshift('lib')
 
-#require 'strong_parameters'
 require 'logger'
 require 'json'
 require 'yaml'
@@ -17,6 +16,16 @@ require 'broker/cassandra'
 Goliath.run_app_on_exit = false
 
 module Broker
+
+  # Valid node/link titles for event visualizer
+  NODES = [
+    'browser',
+    'browser-broker',
+    'broker',
+    'broker-invoca',
+    'invoca'
+  ]
+
   extend self
 
   attr_accessor :server, :logger,
@@ -33,10 +42,8 @@ module Broker
   def run!
     EventMachine.run do
       Broker.connect_amqp!
+      Broker.connect_cassandra!
       Broker::InvocaAPI.listen
-
-      connect_cassandra!
-      # connect_messaging!
 
       self.server   = Broker::SocketServer.new
       runner        = Goliath::Runner.new(ARGV, server)
@@ -75,12 +82,6 @@ module Broker
   end
 
 
-  def log(msg)
-    puts "trying to log: #{msg}"
-    logger.info(msg)
-  end
-
-
   def connect_cassandra!
     host     = config['cassandra']['host']
     port     = config['cassandra']['port']
@@ -88,6 +89,22 @@ module Broker
     #username = config['cassandra']['username']
     #password = config['cassandra']['password']
     Broker::Cassandra2.connect!(host: host, keyspace: keyspace, port: port)
+  end
+
+
+  # Broadcast an event to web clients to update the visualizer
+  #
+  # node_name - String node name, ex:
+  def emit_node_event(node_name)
+    Broker::NODES.include?(node_name) or raise "Invalid event node: #{node_name}"
+
+    Broker.log("[Broker] EMIT: #{node_name}")
+    self.server.client_broadcast('node_event', node_name)
+  end
+
+
+  def log(msg)
+    logger.info(msg)
   end
 
 end

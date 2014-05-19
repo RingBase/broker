@@ -51,12 +51,54 @@ module Broker
       # execute("SELECT * FROM Calls WHERE called_national_number = '#{organization_pilot_number}'").to_a
       # selection = Broker.cassandra.get_range_keys(:Calls)
       calls  = []
-      Broker.cassandra.each(:Calls) do |id|
-        call = Broker.cassandra.get(:Calls,id)
-        call["id"] = id
-        calls << call
-      end
-      Broker.log(calls)
+      calls <<  {
+        call_uuid: 'f0b228d0-ca7c-11e3-9c1a-0800200c9a66',
+        called_country_code: 1,
+        called_national_number: '8053945121',
+        caller_name: 'Andrew Berls',
+        calling_country_code: 1,
+        calling_national_number: '7073227256',
+        notes: '',
+        sale_amount: 0,
+        sale_currency: 'USD',
+        state: 'parked',
+        city: 'Santa Barbara',
+        start_time: 1400021307
+      }
+      calls <<  {
+        call_uuid: 'a40e3016-d4a0-4e38-b293-0741528295a0',
+        called_country_code: 1,
+        called_national_number: '8053945121',
+        caller_name: 'Alex Wood',
+        calling_country_code: 1,
+        calling_national_number: '8054058403',
+        notes: '',
+        sale_amount: 0,
+        sale_currency: 'USD',
+        state: 'bridged',
+        city: 'Santa Barbara',
+        start_time: 1400019858
+      }
+      calls <<  {
+        call_uuid: 'a30e3016-d4a0-4e38-b293-0741528295a0',
+        called_country_code: 1,
+        called_national_number: '8053945121',
+        caller_name: 'Pete Cruz',
+        calling_country_code: 1,
+        calling_national_number: '5598275517',
+        notes: '',
+        sale_amount: 0,
+        sale_currency: 'USD',
+        state: 'parked',
+        city: 'San Francisco',
+        start_time: 1400019858
+      }
+      # Broker.cassandra.each(:calls) do |id|
+      #   call = Broker.cassandra.get(:calls,id)
+      #   call["id"] = id
+      #   calls << call
+      # end
+      # Broker.log(calls)
       calls
     end
 

@@ -53,10 +53,11 @@ module Broker
     password = config['rabbitmq']['password']
     host     = config['rabbitmq']['host']
     port     = config['rabbitmq']['port']
-    vhost    = config['rabbitmq']['vhost']
+    #vhost    = config['rabbitmq']['vhost']
 
-    puts "connecting to amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}"
-    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}")
+    #puts "connecting to amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}"
+    #connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}")
+    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
     self.channel  = AMQP::Channel.new(connection)
 
     # RingBase -> Invoca control queue

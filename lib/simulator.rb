@@ -73,8 +73,9 @@ module Invoca
     password = config['rabbitmq']['password']
     host     = config['rabbitmq']['host']
     port     = config['rabbitmq']['port']
-    vhost    = config['rabbitmq']['vhost']
-    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}")
+    #vhost    = config['rabbitmq']['vhost']
+    #connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}/#{vhost}")
+    connection = AMQP.connect("amqp://#{username}:#{password}@#{host}:#{port}")
 
 
     channel    = AMQP::Channel.new(connection)

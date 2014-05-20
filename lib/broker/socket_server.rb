@@ -10,15 +10,12 @@ module Broker
       @subscribers ||= {}
     end
 
-    #def channel
-    #  @channel ||= EM::Channel.new
-    #end
-
 
     # Get a unique key that identifies a request env
     # Return String
     def ws_key(env)
-      env[GOLIATH_HEADERS][WS_KEY]
+      goliath_headers = env[GOLIATH_HEADERS] or raise "Didn't find GOLIATH_HEADERS in #{env.inspect}"
+      goliath_headers[WS_KEY] or raise "Didn't find WS_KEY in #{goliath_headers.inspect}"
     end
 
 
@@ -38,10 +35,7 @@ module Broker
 
       Broker.instrument('browser-broker', agent_id)
       EM.add_timer(0.25) { Broker.instrument('broker', agent_id) }
-
-      EM.add_timer(0.5) do
-        send("handle_client_#{type}", env, json)
-      end
+      EM.add_timer(0.5)  { send("handle_client_#{type}", env, json) }
     end
 
 
@@ -50,10 +44,8 @@ module Broker
     def on_close(env)
       Broker.log('[SocketServer] Closing connection')
 
-      ws_key = ws_key(env)
-      subscribers.delete_if do |agent_id, agent_env|
-        ws_key(agent_env) == ws_key
-      end
+      key = ws_key(env)
+      subscribers.delete_if { |agent_id, agent_env| ws_key(agent_env) == key }
     end
 
 
@@ -66,14 +58,16 @@ module Broker
     #   :agent_id - Integer
     #
     def handle_client_login(env, data)
-      agent_id = data['agent_id']
+      agent_id = data['agent_id'] or raise "client_login: missing agent_id"
       subscribers[agent_id] = env
     end
 
 
     # Request from client after login to populate call table
     #
-    # json - TODO
+    # json - Hash of
+    #   :org_pilot_number - String phone number
+    #   :agent_id - Integer agent id of connected agent
     #
     def handle_client_list_calls(env, json)
       org_pilot_number = json['org_pilot_number']
@@ -81,7 +75,6 @@ module Broker
       Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}, agent_id: #{agent_id}")
 
       calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
-
       Broker.instrument('browser-broker', agent_id)
 
       EM.add_timer(0.25) do

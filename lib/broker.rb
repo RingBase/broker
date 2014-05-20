@@ -76,9 +76,6 @@ module Broker
     self.update_exchange = channel.fanout(update_exchange_name)
     self.update_queue    = channel.queue('', exclusive: true)
     update_queue.bind(update_exchange)
-
-    # self.queue    = self.channel.queue("invoca.ringswitch.call_updates", :auto_delete => true)
-    # self.exchange = self.channel.default_exchange
   end
 
 
@@ -94,7 +91,7 @@ module Broker
 
   # Broadcast an event to web clients to update the visualizer
   #
-  # node_name - String node name, ex:
+  # node_name - String node name, ex: 'browser'
   def instrument(node_name, agent_id)
     Broker::NODES.include?(node_name) or raise "Invalid event node: #{node_name}"
 

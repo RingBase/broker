@@ -92,11 +92,11 @@ module Broker
   # Broadcast an event to web clients to update the visualizer
   #
   # node_name - String node name, ex: 'browser'
-  def instrument(node_name, agent_id)
+  def instrument(node_name)
     Broker::NODES.include?(node_name) or raise "Invalid event node: #{node_name}"
 
     Broker.log("[Broker] INSTRUMENT: #{node_name}")
-    self.server.client_broadcast('instrument', node: node_name, agent_id: agent_id)
+    self.server.client_broadcast('instrument', node: node_name)
   end
 
 

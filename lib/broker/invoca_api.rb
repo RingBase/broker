@@ -29,7 +29,6 @@ module Broker
       end
     end
 
-
     # json  - Hash of json data
     def publish(json)
       #Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')
@@ -39,14 +38,6 @@ module Broker
       Broker.instrument('broker-invoca')
       Broker.control_queue.publish(payload)
     end
-
-
-
-    def handle_api_call_bridging(json)
-      Broker.log("[InvocaAPI] TODO: got call bridging. #{json}")
-    end
-
-
 
     # TODO:
     #
@@ -64,22 +55,21 @@ module Broker
       # raise NotImplementedError
       # TODO: figure out state change and broadcast appropriate message
       # to client over socket server
-      Broker.log(json)
+      Broker.log("[InvocaAPI] got call update, #{json}")
 
       call = Broker::Cassandra2.get_call_info(json["call_uuid"])
-      call_state = json["call_state"]
-      call["id"] = json["call_uuid"]
+      if json.has_key?("call_state")
+        call_state = json["call_state"]
+      else
+        call_state = json["state"]
+      end
 
+      call["id"] = json["call_uuid"]
       send("handle_api_call_#{call_state}", call)
     end
 
-
-
-
-
-
-
     def handle_api_call_parked(call)
+      Broker.log("[InvocaAPI] got call parked. #{call["id"]}")
       Broker.server.client_broadcast('call_start', call)
     end
 
@@ -87,19 +77,19 @@ module Broker
       Broker.server.client_broadcast('call_accepted', call)
     end
 
-    # def handle_api_call_transfer_completed(call)
-    #   Broker.server.client_broadcast('call_transfer_completed', call)
-    # end
+    def handle_api_call_bridging(call)
+      Broker.log("[InvocaAPI] got call bridging. #{call["id"]}")
+      #Broker.server.client_broadcast('call_start', call)
+    end
+
+    def handle_api_call_bridged(call)
+      Broker.log("[InvocaAPI] got call bridged. #{call["id"]}")
+      Broker.server.client_broadcast('call_bridged', call)
+    end
 
     def handle_api_call_stopped(call)
       Broker.server.client_broadcast('call_stop', call)
     end
-
-
-
-
-
-
 
   end
 end

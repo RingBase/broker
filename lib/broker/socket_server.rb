@@ -118,18 +118,25 @@ module Broker
     #     "type" : "stop_call",
     #     "call_uuid": "asdf87-kjh2-kjh1skl"
     #   }
-    def handle_client_call_stop(call_attrs)
-      Broker.log('[SocketServer] Received call_stop, forwarding to Invoca')
-      Broker.log(call_attrs)
+    #def handle_client_call_stop(call_attrs)
+    #  Broker.log('[SocketServer] Received call_stop, forwarding to Invoca')
+    #  Broker.log(call_attrs)
 
-      hangup_msg = {
-        "type" => "hangup",
-        "call_uuid" => call_attrs['id']
-      }
+    #  hangup_msg = {
+    #    "type" => "hangup",
+    #    "call_uuid" => call_attrs['id']
+    #  }
 
-      Broker.control_queue.publish(hangup_msg.to_json)
+    #  Broker.control_queue.publish(hangup_msg.to_json)
+    #end
+
+    def handle_client_update_notes(env, data)
+      agent_id = data['agent_id'] 
+      peers = subscribers.reject { |id, _| id == agent_id }
+      peers.each do |agent_id, agent_env|
+        agent_env.stream_send(format_event('notes_updated', { note: data['note'] }))
+      end
     end
-
 
     # Helper methods
 

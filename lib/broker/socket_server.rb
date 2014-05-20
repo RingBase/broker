@@ -2,37 +2,85 @@ module Broker
   class InvalidTypeError < StandardError; end
 
   class SocketServer < Goliath::WebSocket
-    Channels = {}
+    GOLIATH_HEADERS = 'goliath.request-headers'.freeze
+    WS_KEY          = 'Sec-WebSocket-Key'.freeze
 
+    # Memoized mapping of agent_id -> env
+    def subscribers
+      @subscribers ||= {}
+    end
+
+
+    # Get a unique key that identifies a request env
+    # Return String
+    def ws_key(env)
+      env[GOLIATH_HEADERS][WS_KEY]
+    end
+
+
+    # Not much to do here; wait for client login message to
+    # subscribe to event pipeline
     def on_open(env)
-      #env.logger.info('[SocketServer] Opening connection')
       Broker.log('[SocketServer] Opening connection')
     end
 
+
+    # Raw WS message received - parse it and dispatch appropriate
+    # client handler
     def on_message(env, raw_json)
       json = JSON.parse(raw_json)
       type = json['type'] or raise 'Missing required param: type'
-      #json['agent_id'] or raise 'Missing required param: agent_id'
       send("handle_client_#{type}", json)
     end
 
-    # TODO: How to properly remove channel state?
+
+    # Grab the WS key from the disconnecting env and delete it from our
+    # subscriber list
     def on_close(env)
-      #env.logger.info('[SocketServer] Closing connection')
+      ws_key = ws_key(env)
+      subscribers.delete_if do |agent_id, agent_env|
+        ws_key(agent_env) == ws_key
+      end
       Broker.log('[SocketServer] Closing connection')
     end
 
 
+    # Client dispatch methods
 
 
+    # Client connected - subscribe them to the event pipeline
+    #
+    # data - Hash of
+    #   :agent_id - Integer
+    #
+    def handle_client_login(data)
+      agent_id = data['agent_id']
+      subscribers[agent_id] = env
+    end
 
 
+    # Request from client after login to populate call table
+    #
+    # json - TODO
+    #
+    def handle_client_list_calls(json)
+      org_pilot_number = json['org_pilot_number']
+      agent_id         = json['agent_id']
+      Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}, agent_id: #{agent_id}")
 
-    # bridge_to encompasses request to call accept and transfer
+      Broker.emit_node_event('browser-broker')
+      calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
+      Broker.emit_node_event('browser')
+
+      client_broadcast('call_list', { calls: calls, agent_id: agent_id })
+    end
+
+
+    # bridge_to encompasses request to accept and transfer calls
     #
     # data - Hash of
     #   :agent - Agent attributes hash
-    #   :call - Call record hash
+    #   :call - Call record attribute hash
     #
     def handle_client_bridge_to(data)
       Broker.log("[SocketServer] Received bridge_to, forwarding to Invoca")
@@ -42,7 +90,7 @@ module Broker
 
       bridge_msg = {
         "type" => "bridge_to",
-        "call_uuid" => call_uuid, #{}"a64539b1-79b7-4a07-9f94-12bad3b7c834",
+        "call_uuid" => call_uuid,
         "country_code" => "1",
         "national_number" => national_number
       }
@@ -69,83 +117,21 @@ module Broker
     end
 
 
-
-
-
-
-
-
-
-
-
-
-
-    def handle_client_login(data)
-      agent_id = data['agent_id']
-      Channels[agent_id] = EM::Channel.new
-      Channels[agent_id].subscribe { |msg| env.stream_send(msg) }
-      #Channels[agent_id] << format_event('join', { agent_id: agent_id })
-    end
-
-
-    # Request from client after login to populate call table
-    #
-    # json - TODO
-    #
-    def handle_client_list_calls(json)
-      org_pilot_number = json['org_pilot_number']
-      agent_id         = json['agent_id']
-
-      Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}")
-      calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
-      Channels[agent_id] << format_event('call_list', { calls: calls })
-    end
-
-
-
-
-
-    # def handle_client_call_accept(data)
-    #   Broker::InvocaAPI.publish(data)
-    # end
-
-    # data: Hash with keys
-    #   'agent_id' - The ID of the agent to transfer to
-    #   'call_id' - The ID of the call to be transferred
-    # def handle_client_call_transfer_request(data)
-    #   Broker::InvocaAPI.publish(data.merge(type: 'call_transfer_request'))
-    # end
-
-
-
-
-
-
-
-    # TODO: hack for demo
-    def handle_client_update_notes(data)
-      agent_id = data.delete('agent_id')
-      peers = Channels.reject { |id, _| id == agent_id }
-      peers.each { |id, chan| chan << format_event('notes_updated', data) }
-    end
-
-    def handle_client_update_textarea(data)
-      Channels.each { |id, chan| chan << format_event('textarea_updated', data) }
-    end
-
-
-
-
-
-
-
-
+    # Helper methods
 
 
     # Broadcast a message to all clients
+    #
+    # event - String event name, ex 'call_list'
+    # data - Arbitrary Hash of JSON data
+    #
     def client_broadcast(event, data)
-      Channels.each { |id, chan| chan << format_event(event, data) }
+      subscribers.each do |agent_id, agent_env|
+        agent_env.stream_send(format_event(event, data))
+      end
+      nil
     end
+
 
     def method_missing(meth, *args, &block)
       if meth =~ /^handle_/
@@ -160,6 +146,7 @@ module Broker
     def format_event(event, data)
       JSON.dump(type: event, data: data)
     end
+
 
     def stop
       EM.next_tick do

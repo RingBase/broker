@@ -44,7 +44,7 @@ module Broker
       # raise NotImplementedError
       # TODO: figure out state change and broadcast appropriate message
       # to client over socket server
-      Broker.log(json)
+      Broker.log("[InvocaAPI] got call update, #{json}")
 
       call = Broker::Cassandra2.get_call_info(json["call_uuid"])
       if json.has_key?("call_state")
@@ -58,6 +58,7 @@ module Broker
     end
 
     def handle_api_call_parked(call)
+      Broker.log("[InvocaAPI] got call parked. #{call["id"]}")
       Broker.server.client_broadcast('call_start', call)
     end
 
@@ -66,12 +67,12 @@ module Broker
     end
 
     def handle_api_call_bridging(call)
-      Broker.log("[InvocaAPI] got call bridging. #{call}")
+      Broker.log("[InvocaAPI] got call bridging. #{call["id"]}")
       #Broker.server.client_broadcast('call_start', call)
     end
 
     def handle_api_call_bridged(call)
-      Broker.log("[InvocaAPI] got call bridged. #{call}")
+      Broker.log("[InvocaAPI] got call bridged. #{call["id"]}")
       Broker.server.client_broadcast('call_bridged', call)
     end
 

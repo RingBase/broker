@@ -33,9 +33,7 @@ module Broker
     # end
 
     def get_call_info(id)
-      call1 = Broker.cassandra.get(:Calls,id)
-      puts "call1", call1
-      call1
+      Broker.cassandra.get(:Calls,id)
     end
 
     # TODO: this will need to take parameters, ex: organization_id

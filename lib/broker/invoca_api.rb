@@ -65,22 +65,18 @@ module Broker
       Broker.server.client_broadcast('call_accepted', call)
     end
 
-    # def handle_api_call_transfer_completed(call)
-    #   Broker.server.client_broadcast('call_transfer_completed', call)
-    # end
+    def handle_api_call_bridging(call)
+      Broker.log("[InvocaAPI] got call bridging. #{call}")
+      #Broker.server.client_broadcast('call_start', call)
+    end
+
+    def handle_api_call_bridged(call)
+      Broker.log("[InvocaAPI] got call bridged. #{call}")
+      Broker.server.client_broadcast('call_bridged', call)
+    end
 
     def handle_api_call_stopped(call)
       Broker.server.client_broadcast('call_stop', call)
-    end
-
-    def handle_api_call_bridging(json)
-      Broker.log("[InvocaAPI] TODO: got call bridging. #{json}")
-      Broker.server.client_broadcast('call_start', call)
-    end
-
-    def handle_api_call_bridged(json)
-      Broker.log("[InvocaAPI] TODO: got call bridged. #{json}")
-      Broker.server.client_broadcast('call_start', call)
     end
 
   end

@@ -82,9 +82,9 @@ module Broker
 
       calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
 
-      EM.add_timer(0.25) { Broker.instrument('browser-broker', agent_id) }
+      Broker.instrument('browser-broker', agent_id)
 
-      EM.add_timer(0.5) do
+      EM.add_timer(0.25) do
         Broker.instrument('browser', agent_id)
         client_broadcast('call_list', { calls: calls, agent_id: agent_id })
       end

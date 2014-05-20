@@ -33,8 +33,8 @@ module Broker
       type = json['type'] or raise 'Missing required param: type'
       agent_id = json['agent_id']
 
-      Broker.instrument('browser-broker', agent_id)
-      EM.add_timer(0.25) { Broker.instrument('broker', agent_id) }
+      Broker.instrument('browser-broker')
+      EM.add_timer(0.25) { Broker.instrument('broker') }
       EM.add_timer(0.5)  { send("handle_client_#{type}", env, json) }
     end
 
@@ -75,10 +75,10 @@ module Broker
       Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}, agent_id: #{agent_id}")
 
       calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
-      Broker.instrument('browser-broker', agent_id)
+      Broker.instrument('browser-broker')
 
       EM.add_timer(0.25) do
-        Broker.instrument('browser', agent_id)
+        Broker.instrument('browser')
         client_broadcast('call_list', { calls: calls, agent_id: agent_id })
       end
     end
@@ -105,10 +105,10 @@ module Broker
       }
 
       EM.add_timer(0.25) do
-        Broker.instrument('broker-invoca', agent_id)
+        Broker.instrument('broker-invoca')
         Broker.control_queue.publish(bridge_msg.to_json)
 
-        EM.add_timer(0.5) { Broker.instrument('invoca', agent_id) }
+        EM.add_timer(0.5) { Broker.instrument('invoca') }
       end
     end
 

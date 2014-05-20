@@ -26,7 +26,6 @@ module Broker
       puts "Connected to cassandra #{host}, #{keyspace}"
     end
 
-
     # def delete_calls
     #   # Delete all calls
     #   Broker.cassandra.get_range_keys(:Calls).each { |call_key| Broker.cassandra.remove(:Calls,call_key) }
@@ -35,7 +34,7 @@ module Broker
 
     def get_call_info(id)
       call1 = Broker.cassandra.get(:Calls,id)
-      puts call1
+      puts "call1", call1
       call1
     end
 
@@ -51,7 +50,6 @@ module Broker
       #result = execute("SELECT * FROM Calls WHERE called_national_number = '#{organization_pilot_number}'").to_a
       #p result
 
-
       calls  = []
       Broker.cassandra.each(:Calls) do |id|
        call = Broker.cassandra.get(:Calls,id)
@@ -61,7 +59,6 @@ module Broker
 
       calls
     end
-
 
     # Insert a call into Cassandra for testing
     #
@@ -90,6 +87,5 @@ module Broker
       Broker.log("[Cassandra] '#{query}'")
       Broker.cassandra.execute(query)
     end
-
   end
 end

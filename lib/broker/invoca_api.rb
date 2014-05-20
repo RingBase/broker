@@ -15,11 +15,8 @@ module Broker
 
     def process(json)
       type = json['type']
-
-      #Broker.instrument('broker-invoca')
       send("handle_api_#{type}", json)
     end
-
 
     # json  - Hash of json data
     def publish(json)
@@ -30,14 +27,6 @@ module Broker
       Broker.instrument('broker-invoca')
       Broker.control_queue.publish(payload)
     end
-
-
-
-    def handle_api_call_bridging(json)
-      Broker.log("[InvocaAPI] TODO: got call bridging. #{json}")
-    end
-
-
 
     # TODO:
     #
@@ -58,17 +47,15 @@ module Broker
       Broker.log(json)
 
       call = Broker::Cassandra2.get_call_info(json["call_uuid"])
-      call_state = json["call_state"]
-      call["id"] = json["call_uuid"]
+      if json.has_key?("call_state")
+        call_state = json["call_state"]
+      else
+        call_state = json["state"]
+      end
 
+      call["id"] = json["call_uuid"]
       send("handle_api_call_#{call_state}", call)
     end
-
-
-
-
-
-
 
     def handle_api_call_parked(call)
       Broker.server.client_broadcast('call_start', call)
@@ -86,11 +73,15 @@ module Broker
       Broker.server.client_broadcast('call_stop', call)
     end
 
+    def handle_api_call_bridging(json)
+      Broker.log("[InvocaAPI] TODO: got call bridging. #{json}")
+      Broker.server.client_broadcast('call_start', call)
+    end
 
-
-
-
-
+    def handle_api_call_bridged(json)
+      Broker.log("[InvocaAPI] TODO: got call bridged. #{json}")
+      Broker.server.client_broadcast('call_start', call)
+    end
 
   end
 end

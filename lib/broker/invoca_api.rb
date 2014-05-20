@@ -15,7 +15,8 @@ module Broker
 
     def process(json)
       type = json['type']
-      call = json['call']
+
+      #Broker.instrument('broker-invoca')
       send("handle_api_#{type}", json)
     end
 
@@ -26,8 +27,14 @@ module Broker
 
       Broker.log("[InvocaAPI] Publishing to control queue: #{json}")
       payload = JSON.dump(json) # Stringify JSON
-      Broker.emit_node_event('broker-invoca')
+      Broker.instrument('broker-invoca')
       Broker.control_queue.publish(payload)
+    end
+
+
+
+    def handle_api_call_bridging(json)
+      Broker.log("[InvocaAPI] TODO: got call bridging. #{json}")
     end
 
 

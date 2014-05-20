@@ -87,7 +87,7 @@ module Broker
     port     = config['cassandra']['port']
     keyspace = config['cassandra']['keyspace']
     #username = config['cassandra']['username']
-    #password = config['cassandra']['password']
+    #password = config['cassandra']['password'
     Broker::Cassandra2.connect!(host: host, keyspace: keyspace, port: port)
   end
 
@@ -95,11 +95,11 @@ module Broker
   # Broadcast an event to web clients to update the visualizer
   #
   # node_name - String node name, ex:
-  def emit_node_event(node_name)
+  def instrument(node_name, agent_id)
     Broker::NODES.include?(node_name) or raise "Invalid event node: #{node_name}"
 
-    Broker.log("[Broker] EMIT: #{node_name}")
-    self.server.client_broadcast('node_event', node_name)
+    Broker.log("[Broker] INSTRUMENT: #{node_name}")
+    self.server.client_broadcast('instrument', node: node_name, agent_id: agent_id)
   end
 
 

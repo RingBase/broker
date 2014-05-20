@@ -21,17 +21,17 @@ module Broker
       host     = options.delete(:host)
       keyspace = options.delete(:keyspace)
       port     = options.delete(:port)
-      # Broker.cassandra = Cql::Client.connect(host: host, keyspace: keyspace)
+      #Broker.cassandra = Cql::Client.connect(host: host, keyspace: keyspace)
       Broker.cassandra = Cassandra.new(keyspace, "#{host}:#{port}", :connect_timeout => 10000)
       puts "Connected to cassandra #{host}, #{keyspace}"
-      # delete_calls
     end
 
-    def delete_calls
-      # Delete all calls
-      Broker.cassandra.get_range_keys(:Calls).each { |call_key| Broker.cassandra.remove(:Calls,call_key) }
-      puts "delete calls"
-    end
+
+    # def delete_calls
+    #   # Delete all calls
+    #   Broker.cassandra.get_range_keys(:Calls).each { |call_key| Broker.cassandra.remove(:Calls,call_key) }
+    #   puts "delete calls"
+    # end
 
     def get_call_info(id)
       call1 = Broker.cassandra.get(:Calls,id)
@@ -48,15 +48,17 @@ module Broker
     #
     # Returns Array[Hash]
     def get_calls_for_organization(organization_pilot_number)
-      # execute("SELECT * FROM Calls WHERE called_national_number = '#{organization_pilot_number}'").to_a
-      # selection = Broker.cassandra.get_range_keys(:Calls)
+      #result = execute("SELECT * FROM Calls WHERE called_national_number = '#{organization_pilot_number}'").to_a
+      #p result
+
+
       calls  = []
       Broker.cassandra.each(:Calls) do |id|
-        call = Broker.cassandra.get(:Calls,id)
-        call["id"] = id
-        calls << call
+       call = Broker.cassandra.get(:Calls,id)
+       call['id'] = id
+       calls << call
       end
-      Broker.log(calls)
+
       calls
     end
 

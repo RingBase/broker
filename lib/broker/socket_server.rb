@@ -10,6 +10,10 @@ module Broker
       @subscribers ||= {}
     end
 
+    #def channel
+    #  @channel ||= EM::Channel.new
+    #end
+
 
     # Get a unique key that identifies a request env
     # Return String
@@ -30,18 +34,26 @@ module Broker
     def on_message(env, raw_json)
       json = JSON.parse(raw_json)
       type = json['type'] or raise 'Missing required param: type'
-      send("handle_client_#{type}", json)
+      agent_id = json['agent_id']
+
+      Broker.instrument('browser-broker', agent_id)
+      EM.add_timer(0.25) { Broker.instrument('broker', agent_id) }
+
+      EM.add_timer(0.5) do
+        send("handle_client_#{type}", env, json)
+      end
     end
 
 
     # Grab the WS key from the disconnecting env and delete it from our
     # subscriber list
     def on_close(env)
+      Broker.log('[SocketServer] Closing connection')
+
       ws_key = ws_key(env)
       subscribers.delete_if do |agent_id, agent_env|
         ws_key(agent_env) == ws_key
       end
-      Broker.log('[SocketServer] Closing connection')
     end
 
 
@@ -53,7 +65,7 @@ module Broker
     # data - Hash of
     #   :agent_id - Integer
     #
-    def handle_client_login(data)
+    def handle_client_login(env, data)
       agent_id = data['agent_id']
       subscribers[agent_id] = env
     end
@@ -63,16 +75,19 @@ module Broker
     #
     # json - TODO
     #
-    def handle_client_list_calls(json)
+    def handle_client_list_calls(env, json)
       org_pilot_number = json['org_pilot_number']
       agent_id         = json['agent_id']
       Broker.log("[SocketServer] list_calls, org_pilot number: #{org_pilot_number}, agent_id: #{agent_id}")
 
-      Broker.emit_node_event('browser-broker')
       calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
-      Broker.emit_node_event('browser')
 
-      client_broadcast('call_list', { calls: calls, agent_id: agent_id })
+      EM.add_timer(0.25) { Broker.instrument('browser-broker', agent_id) }
+
+      EM.add_timer(0.5) do
+        Broker.instrument('browser', agent_id)
+        client_broadcast('call_list', { calls: calls, agent_id: agent_id })
+      end
     end
 
 
@@ -82,10 +97,11 @@ module Broker
     #   :agent - Agent attributes hash
     #   :call - Call record attribute hash
     #
-    def handle_client_bridge_to(data)
+    def handle_client_bridge_to(env, data)
       Broker.log("[SocketServer] Received bridge_to, forwarding to Invoca")
 
       call_uuid       = data['call']['id']
+      agent_id        = data['agent']['id']
       national_number = data['agent']['phone_number']
 
       bridge_msg = {
@@ -95,7 +111,12 @@ module Broker
         "national_number" => national_number
       }
 
-      Broker.control_queue.publish(bridge_msg.to_json)
+      EM.add_timer(0.25) do
+        Broker.instrument('broker-invoca', agent_id)
+        Broker.control_queue.publish(bridge_msg.to_json)
+
+        EM.add_timer(0.5) { Broker.instrument('invoca', agent_id) }
+      end
     end
 
 

@@ -22,6 +22,8 @@ module Broker
     'browser',
     'browser-broker',
     'broker',
+    'broker-cassandra',
+    'cassandra',
     'broker-invoca',
     'invoca'
   ]
@@ -97,6 +99,10 @@ module Broker
 
     Broker.log("[Broker] INSTRUMENT: #{node_name}")
     self.server.client_broadcast('instrument', node: node_name)
+
+    if block_given?
+      EM.add_timer(0.25) { yield }
+    end
   end
 
 

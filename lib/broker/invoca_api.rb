@@ -16,18 +16,32 @@ module Broker
     def process(json)
       type = json['type']
 
-      Broker.instrument('broker-invoca')
 
-      EM.add_timer(0.25) do
-        Broker.instrument('broker')
 
-        EM.add_timer(0.25) { Broker.instrument('browser-broker') }
-        EM.add_timer(0.5) do
-          Broker.instrument('browser')
-          send("handle_api_#{type}", json)
-        end
-      end
+      # Broker.instrument('broker-invoca')
+
+      # EM.add_timer(0.25) do
+      #   Broker.instrument('broker')
+
+      #   EM.add_timer(0.25) { Broker.instrument('browser-broker') }
+      #   EM.add_timer(0.5) do
+      #     Broker.instrument('browser')
+      #     send("handle_api_#{type}", json)
+      #   end
+      # end
+
+
+      Broker.instrument('broker-invoca') {
+        Broker.instrument('broker') {
+          Broker.instrument('browser-broker') {
+            Broker.instrument('browser')
+            send("handle_api_#{type}", json)
+          }
+        }
+      }
     end
+
+
 
     # json  - Hash of json data
     def publish(json)

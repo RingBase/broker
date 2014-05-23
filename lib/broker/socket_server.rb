@@ -79,7 +79,7 @@ module Broker
 
       Broker.instrument('broker-cassandra') {
         Broker.instrument('cassandra') {
-          calls = Broker::Cassandra2.get_calls_for_organization(org_pilot_number)
+          calls = Broker::CassandraConn.get_calls_for_organization(org_pilot_number)
 
           Broker.instrument('broker-cassandra') {
             Broker.instrument('broker') {

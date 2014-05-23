@@ -2,7 +2,7 @@ require 'securerandom'
 require 'cassandra'
 
 module Broker
-  module Cassandra2
+  module CassandraConn
     extend self
 
     CALL_FIELDS = %w(
@@ -21,16 +21,9 @@ module Broker
       host     = options.delete(:host)
       keyspace = options.delete(:keyspace)
       port     = options.delete(:port)
-      #Broker.cassandra = Cql::Client.connect(host: host, keyspace: keyspace)
       Broker.cassandra = Cassandra.new(keyspace, "#{host}:#{port}", :connect_timeout => 10000)
       puts "Connected to cassandra #{host}, #{keyspace}"
     end
-
-    # def delete_calls
-    #   # Delete all calls
-    #   Broker.cassandra.get_range_keys(:Calls).each { |call_key| Broker.cassandra.remove(:Calls,call_key) }
-    #   puts "delete calls"
-    # end
 
     def get_call_info(id)
       Broker.cassandra.get(:Calls,id)
@@ -50,9 +43,10 @@ module Broker
 
       calls  = []
       Broker.cassandra.each(:Calls) do |id|
-       call = Broker.cassandra.get(:Calls,id)
-       call['id'] = id
-       calls << call
+        # Broker.cassandra.remove(:Calls,id) # Uncomment if you want to clear the Cassandra database
+        call = Broker.cassandra.get(:Calls,id)
+        call['id'] = id
+        calls << call
       end
 
       calls

@@ -66,12 +66,11 @@ module Broker
     #     "detail": "Caller hung up" | "Phone wasn't answered" | "Phone was busy" | ...
     #   }
     def handle_api_call_update(json)
-      # raise NotImplementedError
       # TODO: figure out state change and broadcast appropriate message
       # to client over socket server
       Broker.log("[InvocaAPI] got call update, #{json}")
 
-      call = Broker::Cassandra2.get_call_info(json["call_uuid"])
+      call = Broker::CassandraConn.get_call_info(json["call_uuid"])
       if json.has_key?("call_state")
         call_state = json["call_state"]
       else

@@ -13,23 +13,9 @@ module Broker
       end
     end
 
+
     def process(json)
       type = json['type']
-
-
-
-      # Broker.instrument('broker-invoca')
-
-      # EM.add_timer(0.25) do
-      #   Broker.instrument('broker')
-
-      #   EM.add_timer(0.25) { Broker.instrument('browser-broker') }
-      #   EM.add_timer(0.5) do
-      #     Broker.instrument('browser')
-      #     send("handle_api_#{type}", json)
-      #   end
-      # end
-
 
       Broker.instrument('broker-invoca') {
         Broker.instrument('broker') {
@@ -42,7 +28,6 @@ module Broker
     end
 
 
-
     # json  - Hash of json data
     def publish(json)
       #Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')
@@ -52,6 +37,7 @@ module Broker
       Broker.instrument('broker-invoca')
       Broker.control_queue.publish(payload)
     end
+
 
     # TODO:
     #
@@ -65,12 +51,14 @@ module Broker
     #     "call_state": "parked" | "bridging" | "bridged" | "stopped"
     #     "detail": "Caller hung up" | "Phone wasn't answered" | "Phone was busy" | ...
     #   }
+    #
+    # TODO: figure out state change and broadcast appropriate message
+    # to client over socket server
     def handle_api_call_update(json)
-      # TODO: figure out state change and broadcast appropriate message
-      # to client over socket server
       Broker.log("[InvocaAPI] got call update, #{json}")
-
       call = Broker::CassandraConn.get_call_info(json["call_uuid"])
+
+      # TODO: ???
       if json.has_key?("call_state")
         call_state = json["call_state"]
       else
@@ -80,6 +68,7 @@ module Broker
       call["id"] = json["call_uuid"]
       send("handle_api_call_#{call_state}", call)
     end
+
 
     def handle_api_call_parked(call)
       Broker.log("[InvocaAPI] got call parked. #{call["id"]}")
@@ -92,7 +81,6 @@ module Broker
 
     def handle_api_call_bridging(call)
       Broker.log("[InvocaAPI] got call bridging. #{call["id"]}")
-      #Broker.server.client_broadcast('call_start', call)
     end
 
     def handle_api_call_bridged(call)

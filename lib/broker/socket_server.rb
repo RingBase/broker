@@ -53,7 +53,6 @@ module Broker
 
     # Client dispatch methods
 
-
     # Client connected - subscribe them to the event pipeline
     #
     # data - Hash of
@@ -102,9 +101,10 @@ module Broker
     #
     def handle_client_bridge_to(env, data)
       Broker.log("[SocketServer] Received bridge_to, forwarding to Invoca")
+      Broker.log("[SocketServer] Data: #{data}")
 
       call_uuid       = data['call']['id']
-      agent_id        = data['agent']['id']
+      #agent_id        = data['agent']['id']
       national_number = data['agent']['phone_number']
 
       bridge_msg = {
@@ -140,13 +140,15 @@ module Broker
     #  Broker.control_queue.publish(hangup_msg.to_json)
     #end
 
+
     def handle_client_update_notes(env, data)
       agent_id = data['agent_id'] 
       peers = subscribers.reject { |id, _| id == agent_id }
       peers.each do |agent_id, agent_env|
-        agent_env.stream_send(format_event('notes_updated', { note: data['note'] }))
+        agent_env.stream_send(format_event('notes_updated', { note: data['note'], user_name: data['user_name'] }))
       end
     end
+
 
     # Helper methods
 

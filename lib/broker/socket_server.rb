@@ -31,7 +31,6 @@ module Broker
     def on_message(env, raw_json)
       json = JSON.parse(raw_json)
       type = json['type'] or raise 'Missing required param: type'
-      agent_id = json['agent_id']
 
       Broker.instrument('browser-broker') {
         Broker.instrument('broker') {
@@ -44,9 +43,9 @@ module Broker
     # Grab the WS key from the disconnecting env and delete it from our
     # subscriber list
     def on_close(env)
-      Broker.log('[SocketServer] Closing connection')
-
       key = ws_key(env)
+      Broker.log("[SocketServer] Closing connection: #{key}")
+
       subscribers.delete_if { |agent_id, agent_env| ws_key(agent_env) == key }
     end
 
@@ -104,9 +103,7 @@ module Broker
       Broker.log("[SocketServer] Data: #{data}")
 
       call_uuid       = data['call']['id']
-      #agent_id        = data['agent']['id']
       national_number = data['agent']['phone_number']
-
       bridge_msg = {
         "type" => "bridge_to",
         "call_uuid" => call_uuid,
@@ -116,42 +113,21 @@ module Broker
 
       Broker.instrument('broker-invoca') {
         Broker.control_queue.publish(bridge_msg.to_json)
-
         EM.add_timer(0.5) { Broker.instrument('invoca') }
       }
-
     end
 
 
-    # call_stop sent by client when agent hangs up
-    #   {
-    #     "type" : "stop_call",
-    #     "call_uuid": "asdf87-kjh2-kjh1skl"
-    #   }
-    #def handle_client_call_stop(call_attrs)
-    #  Broker.log('[SocketServer] Received call_stop, forwarding to Invoca')
-    #  Broker.log(call_attrs)
-
-    #  hangup_msg = {
-    #    "type" => "hangup",
-    #    "call_uuid" => call_attrs['id']
-    #  }
-
-    #  Broker.control_queue.publish(hangup_msg.to_json)
-    #end
-
-
+    # notes for a call were updated - broadcast update to peers
     def handle_client_update_notes(env, data)
-      agent_id = data['agent_id'] 
-      peers = subscribers.reject { |id, _| id == agent_id }
-      peers.each do |agent_id, agent_env|
-        agent_env.stream_send(format_event('notes_updated', { note: data['note'], user_name: data['user_name'] }))
+      agent_id = data['agent_id']
+      peers_for(agent_id).each do |agent_id, agent_env|
+        agent_env.stream_send(format_event('notes_updated', data))
       end
     end
 
 
     # Helper methods
-
 
     # Broadcast a message to all clients
     #
@@ -163,6 +139,13 @@ module Broker
         agent_env.stream_send(format_event(event, data))
       end
       nil
+    end
+
+
+    # Get all of an agent's peers - everybody in the org except them
+    # Return Hash { id -> env }
+    def peers_for(agent_id)
+      subscribers.reject { |id, _| id == agent_id }
     end
 
 
@@ -178,14 +161,6 @@ module Broker
 
     def format_event(event, data)
       JSON.dump(type: event, data: data)
-    end
-
-
-    def stop
-      EM.next_tick do
-        EM.stop
-        Broker.log("[SocketServer] Stopped")
-      end
     end
 
   end

@@ -30,8 +30,6 @@ module Broker
 
     # json  - Hash of json data
     def publish(json)
-      #Broker.exchange.publish(JSON.dump(json), routing_key: 'broker_to_invoca')
-
       Broker.log("[InvocaAPI] Publishing to control queue: #{json}")
       payload = JSON.dump(json) # Stringify JSON
       Broker.instrument('broker-invoca')
@@ -39,18 +37,8 @@ module Broker
     end
 
 
-    # TODO:
-    #
-    # call_update
-    #   Sent when call is updated, in any state.
-    #   The first event for a call will be "parked". The final will be "stopped".
-    #
-    #   {
-    #     "type": "call_update",
-    #     "call_uuid": "asdf87-kjh2-kjh1skl",
-    #     "call_state": "parked" | "bridging" | "bridged" | "stopped"
-    #     "detail": "Caller hung up" | "Phone wasn't answered" | "Phone was busy" | ...
-    #   }
+    # Sent when call is updated, in any state.
+    # The first event for a call will be "parked". The final will be "stopped".
     #
     # TODO: figure out state change and broadcast appropriate message
     # to client over socket server

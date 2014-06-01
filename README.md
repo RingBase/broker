@@ -41,11 +41,3 @@ You can start the simulator listener (which receives events and sends back ACKs)
 ```
 $ rake simulator:listen
 ```
-
-
-
-
-### Status
-[![Build Status](https://travis-ci.org/RingBase/broker.png?branch=master)](https://travis-ci.org/RingBase/broker)
-
-
